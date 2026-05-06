@@ -1,7 +1,5 @@
 package com.library.logic;
 
-import com.library.model.Book;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -92,7 +90,8 @@ public class LibraryGraph {
     }
 
     public List<String> getTopRecommendations(String isbn, int limit) {
-        if (!recommendationGraph.containsKey(isbn)) return new ArrayList<>();
+        if (!recommendationGraph.containsKey(isbn))
+            return new ArrayList<>();
 
         Map<String, Integer> edges = recommendationGraph.get(isbn);
         List<Map.Entry<String, Integer>> list = new ArrayList<>(edges.entrySet());

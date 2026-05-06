@@ -21,21 +21,21 @@ public class DataLoader {
         String line = "";
         String cvsSplitBy = ",";
 
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile, java.nio.charset.StandardCharsets.UTF_8))) {
             // Skip the header
             br.readLine();
 
             while ((line = br.readLine()) != null) {
-                // Use comma as separator
-                String[] bookData = line.split(cvsSplitBy);
+                // Use comma as separator, ignoring commas inside quotes
+                String[] bookData = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
                 
                 if (bookData.length >= 6) {
-                    String isbn = bookData[0].trim();
-                    String title = bookData[1].trim();
-                    String genre = bookData[2].trim();
-                    String subGenre = bookData[3].trim();
-                    String author = bookData[4].trim();
-                    int borrowCount = Integer.parseInt(bookData[5].trim());
+                    String isbn = bookData[0].replaceAll("^\"|\"$", "").trim();
+                    String title = bookData[1].replaceAll("^\"|\"$", "").trim();
+                    String genre = bookData[2].replaceAll("^\"|\"$", "").trim();
+                    String subGenre = bookData[3].replaceAll("^\"|\"$", "").trim();
+                    String author = bookData[4].replaceAll("^\"|\"$", "").trim();
+                    int borrowCount = Integer.parseInt(bookData[5].replaceAll("^\"|\"$", "").trim());
                     
                     // Generate a random shelf location for realism
                     String location = "Shelf " + ((int)(Math.random() * 3) + 1);

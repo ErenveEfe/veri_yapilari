@@ -17,15 +17,14 @@ public class DataLoader {
         db.addUser(new User("aca02", "abcd", UserType.ACADEMICIAN));
         db.addUser(new User("admin", "admin", UserType.ADMIN));
 
-        String csvFile = "library_dataset.csv";
+        String csvFilePath = "library_dataset.csv";
         String line = "";
-        String cvsSplitBy = ",";
 
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile, java.nio.charset.StandardCharsets.UTF_8))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(csvFilePath, java.nio.charset.StandardCharsets.UTF_8))) {
             // Skip the header
-            br.readLine();
+            bufferedReader.readLine();
 
-            while ((line = br.readLine()) != null) {
+            while ((line = bufferedReader.readLine()) != null) {
                 // Use comma as separator, ignoring commas inside quotes
                 String[] bookData = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
                 
@@ -43,9 +42,9 @@ public class DataLoader {
                     db.addBook(new Book(isbn, title, genre, subGenre, author, borrowCount, location));
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Dataset file not found or could not be read: " + e.getMessage());
-            e.printStackTrace();
+        } catch (IOException exception) {
+            System.err.println("Dataset file not found or could not be read: " + exception.getMessage());
+            exception.printStackTrace();
         }
     }
 }

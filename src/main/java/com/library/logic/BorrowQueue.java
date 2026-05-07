@@ -3,49 +3,64 @@ package com.library.logic;
 import com.library.model.User;
 import com.library.model.UserType;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
 
 public class BorrowQueue {
-    private Queue<User> academicianQueue;
-    private Queue<User> studentQueue;
+    // Öncelikli Kuyruk (Priority Queue) ve arka planda Heap yapısı kullanıyoruz
+    private PriorityQueue<User> priorityQueue;
 
     public BorrowQueue() {
-        academicianQueue = new LinkedList<>();
-        studentQueue = new LinkedList<>();
+        // Akademisyenlerin önceliği var. Akademisyen ise başa, değilse sona atan bir kural yazdık.
+        // Bu Comparator, PriorityQueue'nun Heap (Ağaç tabanlı öncelik) mantığıyla sıralama yapmasını sağlar.
+        Comparator<User> userPriorityComparator = new Comparator<User>() {
+            @Override
+            public int compare(User user1, User user2) {
+                // Eğer 1. kullanıcı akademisyen, 2. öğrenci ise 1. öne geçer (-1)
+                if (user1.getUserType() == UserType.ACADEMICIAN && user2.getUserType() != UserType.ACADEMICIAN) {
+                    return -1; 
+                } 
+                // Eğer 2. kullanıcı akademisyen, 1. öğrenci ise 2. öne geçer (1)
+                else if (user1.getUserType() != UserType.ACADEMICIAN && user2.getUserType() == UserType.ACADEMICIAN) {
+                    return 1;  
+                }
+                return 0; // İkisi de aynıysa öncelik eşit
+            }
+        };
+        
+        priorityQueue = new PriorityQueue<>(userPriorityComparator);
     }
 
     public boolean enqueue(User user) {
-        if (academicianQueue.stream().anyMatch(u -> u.getId().equals(user.getId())) ||
-            studentQueue.stream().anyMatch(u -> u.getId().equals(user.getId()))) {
-            return false;
+        // Kuyrukta zaten var mı diye kontrol edelim
+        for (User queuedUser : priorityQueue) {
+            if (queuedUser.getId().equals(user.getId())) {
+                return false;
+            }
         }
         
-        if (user.getUserType() == UserType.ACADEMICIAN) {
-            academicianQueue.offer(user);
-        } else {
-            studentQueue.offer(user);
-        }
+        priorityQueue.offer(user);
         return true;
     }
 
     public User dequeue() {
-        if (!academicianQueue.isEmpty()) {
-            return academicianQueue.poll();
-        }
-        return studentQueue.poll();
+        // En yüksek öncelikli olanı (Heap'in tepesindekini) çıkartıp verir (O(log n))
+        return priorityQueue.poll();
     }
 
     public boolean isEmpty() {
-        return academicianQueue.isEmpty() && studentQueue.isEmpty();
+        return priorityQueue.isEmpty();
     }
 
     public List<User> getQueueList() {
+        // Arayüzde göstermek için listeye çevirip döndürüyoruz
         List<User> list = new ArrayList<>();
-        list.addAll(academicianQueue);
-        list.addAll(studentQueue);
+        PriorityQueue<User> copyQueue = new PriorityQueue<>(priorityQueue);
+        while (!copyQueue.isEmpty()) {
+            list.add(copyQueue.poll());
+        }
         return list;
     }
 }

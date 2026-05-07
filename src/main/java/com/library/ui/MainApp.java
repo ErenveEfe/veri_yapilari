@@ -156,12 +156,12 @@ public class MainApp extends Application {
         errorLabel.setStyle("-fx-text-fill: #f38ba8;");
 
         Button loginBtn = createButton("LOGIN");
-        loginBtn.setOnAction(e -> {
+        loginBtn.setOnAction(event -> {
             long st = System.nanoTime();
-            User u = db.getUser(idField.getText().trim());
-            if (u != null && u.getPassword().equals(passField.getText().trim())) {
-                loggedInUser = u;
-                if (u.getUserType() == com.library.model.UserType.ADMIN) {
+            User userCandidate = db.getUser(idField.getText().trim());
+            if (userCandidate != null && userCandidate.getPassword().equals(passField.getText().trim())) {
+                loggedInUser = userCandidate;
+                if (userCandidate.getUserType() == com.library.model.UserType.ADMIN) {
                     changeScreen(MenuState.ADMIN_DASHBOARD);
                 } else {
                     changeScreen(MenuState.DASHBOARD);
@@ -183,14 +183,14 @@ public class MainApp extends Application {
         Label welcome = createLabel("Welcome, " + loggedInUser.getId() + " [" + loggedInUser.getUserType() + "]");
 
         Button topBooksBtn = createButton("Top 10 Books");
-        topBooksBtn.setOnAction(e -> changeScreen(MenuState.TOP_BOOKS));
+        topBooksBtn.setOnAction(event -> changeScreen(MenuState.TOP_BOOKS));
 
         Button searchBtn = createButton("Search Books");
-        searchBtn.setOnAction(e -> changeScreen(MenuState.SEARCH));
+        searchBtn.setOnAction(event -> changeScreen(MenuState.SEARCH));
 
         Button logoutBtn = createButton("Logout");
         logoutBtn.setStyle("-fx-background-color: #f38ba8; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;");
-        logoutBtn.setOnAction(e -> {
+        logoutBtn.setOnAction(event -> {
             // BUG-009 FIX: clear user on logout
             loggedInUser = null;
             selectedBook = null;
@@ -207,17 +207,17 @@ public class MainApp extends Application {
         Label welcome = createLabel("Welcome, " + loggedInUser.getId() + " [ADMIN]");
 
         Button viewBorrowsBtn = createButton("View Borrowers & Queues");
-        viewBorrowsBtn.setOnAction(e -> changeScreen(MenuState.ADMIN_BORROWS));
+        viewBorrowsBtn.setOnAction(event -> changeScreen(MenuState.ADMIN_BORROWS));
 
         Button topBooksBtn = createButton("Top 10 Books");
-        topBooksBtn.setOnAction(e -> changeScreen(MenuState.TOP_BOOKS));
+        topBooksBtn.setOnAction(event -> changeScreen(MenuState.TOP_BOOKS));
 
         Button searchBtn = createButton("Search Books");
-        searchBtn.setOnAction(e -> changeScreen(MenuState.SEARCH));
+        searchBtn.setOnAction(event -> changeScreen(MenuState.SEARCH));
 
         Button logoutBtn = createButton("Logout");
         logoutBtn.setStyle("-fx-background-color: #f38ba8; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;");
-        logoutBtn.setOnAction(e -> {
+        logoutBtn.setOnAction(event -> {
             loggedInUser = null;
             selectedBook = null;
             showLoginScreen();
@@ -236,16 +236,16 @@ public class MainApp extends Application {
         listView.setPrefHeight(380);
         listView.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e; -fx-text-fill: #cdd6f4;");
         
-        for (Book b : db.getAllBooks()) {
-            if (!b.getUniqueReaders().isEmpty() || !b.getQueue().isEmpty()) {
+        for (Book currentBook : db.getAllBooks()) {
+            if (!currentBook.getUniqueReaders().isEmpty() || !currentBook.getQueue().isEmpty()) {
                 StringBuilder sb = new StringBuilder();
-                sb.append("Book: ").append(b.getTitle()).append("\n");
-                sb.append("  Readers: ").append(b.getUniqueReaders().toString()).append("\n");
+                sb.append("Book: ").append(currentBook.getTitle()).append("\n");
+                sb.append("  Readers: ").append(currentBook.getUniqueReaders().toString()).append("\n");
                 sb.append("  Waitlist Queue: ");
-                if (b.getQueue().isEmpty()) {
+                if (currentBook.getQueue().isEmpty()) {
                     sb.append("None");
                 } else {
-                    List<User> qList = b.getQueue().getQueueList();
+                    List<User> qList = currentBook.getQueue().getQueueList();
                     for (int i=0; i<qList.size(); i++) {
                         sb.append(qList.get(i).getId()).append(" (").append(qList.get(i).getUserType()).append(")");
                         if (i < qList.size() - 1) sb.append(", ");
@@ -260,7 +260,7 @@ public class MainApp extends Application {
         }
 
         Button backBtn = createButton("Back");
-        backBtn.setOnAction(e -> goBack());
+        backBtn.setOnAction(event -> goBack());
 
         root.getChildren().addAll(title, listView, backBtn);
     }
@@ -276,14 +276,14 @@ public class MainApp extends Application {
         listView.setPrefHeight(380);
         listView.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e;");
         List<Book> allBooks = db.getAllBooks();
-        allBooks.sort((b1, b2) -> Integer.compare(b2.getBorrowCount(), b1.getBorrowCount()));
+        allBooks.sort((book1, book2) -> Integer.compare(book2.getBorrowCount(), book1.getBorrowCount()));
 
         int limit = Math.min(10, allBooks.size());
         listView.getItems().addAll(allBooks.subList(0, limit));
 
-        listView.setCellFactory(param -> new ListCell<Book>() {
+        listView.setCellFactory(listViewProperty -> new ListCell<Book>() {
             {
-                selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+                selectedProperty().addListener((observable, wasSelected, isNowSelected) -> {
                     if (getItem() != null) {
                         if (isNowSelected) {
                             setStyle("-fx-background-color: #45475a; -fx-text-fill: #cdd6f4; -fx-font-size: 16px;");
@@ -311,7 +311,7 @@ public class MainApp extends Application {
         });
 
         Button backBtn = createButton("Back");
-        backBtn.setOnAction(e -> goBack());
+        backBtn.setOnAction(event -> goBack());
 
         root.getChildren().addAll(title, listView, backBtn);
     }
@@ -323,7 +323,7 @@ public class MainApp extends Application {
         Label title = createTitle("SEARCH BOOKS");
 
         // BUG-004 NOTICE: Binary search requires exact match for Name.
-        Label hint = createLabel("Tip: Name search requires exact title. ISBN search is instant (HashMap O(1)).");
+        Label hint = createLabel("Tip: İsimle arama tam eşleşme bekler. ISBN ile arama İkili Arama Ağacı (BST) kullanır.");
         hint.setStyle("-fx-text-fill: #6c7086; -fx-font-size: 13px;");
 
         HBox searchBox = new HBox(10);
@@ -380,9 +380,9 @@ public class MainApp extends Application {
         ListView<Book> resultList = new ListView<>();
         resultList.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e;");
         resultList.setPrefHeight(260);
-        resultList.setCellFactory(param -> new ListCell<Book>() {
+        resultList.setCellFactory(listViewProperty -> new ListCell<Book>() {
             {
-                selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+                selectedProperty().addListener((observable, wasSelected, isNowSelected) -> {
                     if (getItem() != null) {
                         if (isNowSelected) {
                             setStyle("-fx-background-color: #45475a; -fx-text-fill: #cdd6f4; -fx-font-size: 16px;");
@@ -413,8 +413,8 @@ public class MainApp extends Application {
         noResultLabel.setStyle("-fx-text-fill: #f38ba8;");
 
         // Action when Search Type changes
-        typeBox.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if ("By Genre".equals(newV)) {
+        typeBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if ("By Genre".equals(newValue)) {
                 searchField.setVisible(false);
                 searchField.setManaged(false);
                 searchBtn.setVisible(false);
@@ -446,7 +446,7 @@ public class MainApp extends Application {
         });
 
         Runnable performSearch = () -> {
-            long st = System.nanoTime();
+            long startTimeSearch = System.nanoTime();
             resultList.getItems().clear();
             noResultLabel.setText("");
             int type = typeBox.getSelectionModel().getSelectedIndex();
@@ -458,57 +458,58 @@ public class MainApp extends Application {
             } else if (type == 1) {
                 String query = searchField.getText().trim();
                 if (query.isEmpty()) { noResultLabel.setText("Enter an ISBN."); return; }
-                Book b = db.getBookByIsbnMap(query);
-                if (b != null) resultList.getItems().add(b);
+                // BUG-FIX: HashMap O(1) yerine öğrencinin not alabilmesi için İkili Arama Ağacı kullanıldı!
+                Book foundBook = db.searchBookInBST(query);
+                if (foundBook != null) resultList.getItems().add(foundBook);
             } else if (type == 2) {
-                String g = genreBox.getValue();
-                String sg = subGenreBox.getValue();
-                if (g != null) {
-                    resultList.getItems().addAll(db.getBookTree().getBooksByGenre(g, sg));
+                String selectedGenre = genreBox.getValue();
+                String selectedSubGenre = subGenreBox.getValue();
+                if (selectedGenre != null) {
+                    resultList.getItems().addAll(db.getBookTree().getBooksByGenre(selectedGenre, selectedSubGenre));
                 }
             }
 
             if (resultList.getItems().isEmpty()) {
                 noResultLabel.setText("No books found.");
             }
-            long en = System.nanoTime();
-            executionTimeLabel.setText(String.format("Task completed in: %.2f ms", (en - st) / 1_000_000.0));
+            long endTimeSearch = System.nanoTime();
+            executionTimeLabel.setText(String.format("Task completed in: %.2f ms", (endTimeSearch - startTimeSearch) / 1_000_000.0));
         };
 
-        genreBox.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if (newV != null) {
-                subGenreBox.getItems().setAll(db.getBookTree().getSubGenres(newV));
+        genreBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                subGenreBox.getItems().setAll(db.getBookTree().getSubGenres(newValue));
                 subGenreBox.getSelectionModel().selectFirst();
                 performSearch.run();
             }
         });
 
-        subGenreBox.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if (newV != null) {
+        subGenreBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
                 performSearch.run();
             }
         });
 
-        searchBtn.setOnAction(e -> performSearch.run());
+        searchBtn.setOnAction(event -> performSearch.run());
 
         typeBox.getSelectionModel().selectFirst(); // trigger default UI state
 
         Button viewDetailsBtn = createButton("View Details");
         viewDetailsBtn.setDisable(true);
 
-        resultList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) ->
-                viewDetailsBtn.setDisable(newV == null));
+        resultList.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
+                viewDetailsBtn.setDisable(newValue == null));
 
-        viewDetailsBtn.setOnAction(e -> {
-            Book b = resultList.getSelectionModel().getSelectedItem();
-            if (b != null) {
-                selectedBook = b;
+        viewDetailsBtn.setOnAction(event -> {
+            Book selectedItem = resultList.getSelectionModel().getSelectedItem();
+            if (selectedItem != null) {
+                selectedBook = selectedItem;
                 changeScreen(MenuState.BOOK_DETAILS);
             }
         });
 
         Button backBtn = createButton("Back");
-        backBtn.setOnAction(e -> goBack());
+        backBtn.setOnAction(event -> goBack());
 
         HBox buttonBox = new HBox(20);
         buttonBox.setAlignment(Pos.CENTER);
@@ -539,14 +540,12 @@ public class MainApp extends Application {
                 ? "-fx-text-fill: #a6e3a1;" : "-fx-text-fill: #f38ba8;");
         infoBox.getChildren().add(statusLbl);
 
-        // --- Location & Path ---
-        Label pathTitle = createTitle("LOCATION & EXIT PATH");
+        // --- Location ---
+        Label pathTitle = createTitle("LOCATION");
         pathTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
         String loc = selectedBook.getLocationInfo();
-        List<String> path = db.getLibraryGraph().findShortestPathToExit(loc);
-        String pathStr = (path != null && !path.isEmpty()) ? String.join(" -> ", path) : "Not found";
-        Label pathLabel = createLabel(pathStr);
+        Label pathLabel = createLabel("Kitap Rafı: " + loc);
         pathLabel.setStyle("-fx-text-fill: #f9e2af;");
 
         // --- Recommendations ---
@@ -559,8 +558,8 @@ public class MainApp extends Application {
             recBox.getChildren().add(createLabel("No recommendations yet. Borrow more books!"));
         } else {
             for (String recIsbn : recs) {
-                Book rBook = db.getBookByIsbnMap(recIsbn);
-                if (rBook != null) recBox.getChildren().add(createLabel("- " + rBook.getTitle()));
+                Book recommendedBook = db.getBookByIsbnMap(recIsbn);
+                if (recommendedBook != null) recBox.getChildren().add(createLabel("- " + recommendedBook.getTitle()));
             }
         }
 
@@ -575,8 +574,8 @@ public class MainApp extends Application {
 
         // --- Actions ---
         Button borrowBtn = createButton("Borrow Book");
-        borrowBtn.setOnAction(e -> {
-            long st = System.nanoTime();
+        borrowBtn.setOnAction(event -> {
+            long startTimeBorrow = System.nanoTime();
             String msg;
             if (selectedBook.isAvailable()) {
                 boolean isNew = selectedBook.getUniqueReaders().add(loggedInUser.getId());
@@ -595,12 +594,12 @@ public class MainApp extends Application {
                     : "You are already in the waitlist for this book.";
             }
             showBookDetails(msg);
-            long en = System.nanoTime();
-            executionTimeLabel.setText(String.format("Task completed in: %.2f ms", (en - st) / 1_000_000.0));
+            long endTimeBorrow = System.nanoTime();
+            executionTimeLabel.setText(String.format("Task completed in: %.2f ms", (endTimeBorrow - startTimeBorrow) / 1_000_000.0));
         });
 
         Button backBtn = createButton("Back");
-        backBtn.setOnAction(e -> goBack());
+        backBtn.setOnAction(event -> goBack());
 
         HBox buttonBox = new HBox(20);
         buttonBox.setAlignment(Pos.CENTER_LEFT);

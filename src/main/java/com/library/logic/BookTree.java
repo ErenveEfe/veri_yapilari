@@ -23,9 +23,9 @@ public class BookTree {
     }
 
     private TreeNode findOrAddChild(TreeNode parent, String value) {
-        for (TreeNode child : parent.getChildren()) {
-            if (child.getValue().equals(value)) {
-                return child;
+        for (TreeNode childNode : parent.getChildren()) {
+            if (childNode.getValue().equals(value)) {
+                return childNode;
             }
         }
         TreeNode newNode = new TreeNode(value, null);
@@ -34,14 +34,14 @@ public class BookTree {
     }
 
     public List<Book> getBooksByGenre(String genre, String subGenre) {
-        List<Book> result = new ArrayList<>();
-        for (TreeNode child : root.getChildren()) {
-            if (child.getValue().equalsIgnoreCase(genre)) {
-                for (TreeNode subNode : child.getChildren()) {
-                    if (subGenre == null || subGenre.equalsIgnoreCase("Hepsi") || subNode.getValue().equalsIgnoreCase(subGenre)) {
-                        for (TreeNode bookNode : subNode.getChildren()) {
+        List<Book> foundBooks = new ArrayList<>();
+        for (TreeNode genreNode : root.getChildren()) {
+            if (genreNode.getValue().equalsIgnoreCase(genre)) {
+                for (TreeNode subGenreNode : genreNode.getChildren()) {
+                    if (subGenre == null || subGenre.equalsIgnoreCase("Hepsi") || subGenreNode.getValue().equalsIgnoreCase(subGenre)) {
+                        for (TreeNode bookNode : subGenreNode.getChildren()) {
                             if (bookNode.getBook() != null) {
-                                result.add(bookNode.getBook());
+                                foundBooks.add(bookNode.getBook());
                             }
                         }
                     }
@@ -49,29 +49,29 @@ public class BookTree {
                 break;
             }
         }
-        return result;
+        return foundBooks;
     }
 
     public List<String> getGenres() {
-        List<String> result = new ArrayList<>();
-        for (TreeNode child : root.getChildren()) {
-            result.add(child.getValue());
+        List<String> genreList = new ArrayList<>();
+        for (TreeNode genreNode : root.getChildren()) {
+            genreList.add(genreNode.getValue());
         }
-        return result;
+        return genreList;
     }
 
     public List<String> getSubGenres(String genre) {
-        List<String> result = new ArrayList<>();
-        result.add("Hepsi");
-        for (TreeNode child : root.getChildren()) {
-            if (child.getValue().equalsIgnoreCase(genre)) {
-                for (TreeNode subNode : child.getChildren()) {
-                    result.add(subNode.getValue());
+        List<String> subGenreList = new ArrayList<>();
+        subGenreList.add("Hepsi");
+        for (TreeNode genreNode : root.getChildren()) {
+            if (genreNode.getValue().equalsIgnoreCase(genre)) {
+                for (TreeNode subGenreNode : genreNode.getChildren()) {
+                    subGenreList.add(subGenreNode.getValue());
                 }
                 break;
             }
         }
-        return result;
+        return subGenreList;
     }
 
     public static class TreeNode {

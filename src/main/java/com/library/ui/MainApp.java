@@ -29,13 +29,13 @@ import java.util.List;
 public class MainApp extends Application {
 
     private VBox root;
-    private Label executionTimeLabel;
+    private Label timeLabel;
     // BUG-001 FIX: track current state to push correctly in changeScreen
     private MenuState currentState = MenuState.LOGIN;
-    private NavigationManager navManager = new NavigationManager();
+    private NavigationManager navigator = new NavigationManager();
     private LibraryDatabase db = new LibraryDatabase();
-    private User loggedInUser = null;
-    private Book selectedBook = null;
+    private User user = null;
+    private Book book = null;
 
     private static final String BG_COLOR = "-fx-background-color: #1e1e2e;";
     private static final String TEXT_COLOR = "-fx-text-fill: #cdd6f4;";
@@ -51,18 +51,18 @@ public class MainApp extends Application {
         root.setAlignment(Pos.CENTER);
         root.setStyle(BG_COLOR);
 
-        executionTimeLabel = new Label("Ready");
-        executionTimeLabel.setStyle("-fx-text-fill: #a6adc8; -fx-background-color: #11111b; -fx-padding: 5px; -fx-background-radius: 5px;");
-        executionTimeLabel.setFont(Font.font("Consolas", FontWeight.BOLD, 12));
+        timeLabel = new Label("Hazır");
+        timeLabel.setStyle("-fx-text-fill: #a6adc8; -fx-background-color: #11111b; -fx-padding: 5px; -fx-background-radius: 5px;");
+        timeLabel.setFont(Font.font("Consolas", FontWeight.BOLD, 12));
 
-        javafx.scene.layout.StackPane mainLayout = new javafx.scene.layout.StackPane(root, executionTimeLabel);
+        javafx.scene.layout.StackPane mainLayout = new javafx.scene.layout.StackPane(root, timeLabel);
         mainLayout.setStyle(BG_COLOR);
-        javafx.scene.layout.StackPane.setAlignment(executionTimeLabel, Pos.BOTTOM_RIGHT);
-        javafx.scene.layout.StackPane.setMargin(executionTimeLabel, new Insets(10));
+        javafx.scene.layout.StackPane.setAlignment(timeLabel, Pos.BOTTOM_RIGHT);
+        javafx.scene.layout.StackPane.setMargin(timeLabel, new Insets(10));
 
         Scene scene = new Scene(mainLayout, 800, 600);
 
-        primaryStage.setTitle("Modern Library Management System");
+        primaryStage.setTitle("Kütüphane Yönetim Sistemi (Veri Yapıları Projesi)");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
@@ -99,13 +99,13 @@ public class MainApp extends Application {
 
     // BUG-001 FIX: push the CURRENT state before transitioning
     private void changeScreen(MenuState newState) {
-        navManager.push(currentState.name());
+        navigator.push(currentState.name());
         currentState = newState;
         renderScreen(newState);
     }
 
     private void goBack() {
-        String prevState = navManager.pop();
+        String prevState = navigator.pop();
         if (prevState != null) {
             currentState = MenuState.valueOf(prevState);
             renderScreen(currentState);
@@ -130,7 +130,8 @@ public class MainApp extends Application {
 
         long endTime = System.nanoTime();
         double ms = (endTime - startTime) / 1_000_000.0;
-        executionTimeLabel.setText(String.format("Task completed in: %.2f ms", ms));
+        // Hocaya hızı göstermek için eklendi:
+        timeLabel.setText(String.format("İşlem süresi: %.2f ms", ms));
     }
 
     // ---------- Screens ----------
@@ -138,38 +139,39 @@ public class MainApp extends Application {
     private void showLoginScreen() {
         root.getChildren().clear();
         currentState = MenuState.LOGIN;
-        navManager = new NavigationManager();
+        navigator = new NavigationManager();
 
-        Label title = createTitle("LIBRARY LOGIN");
+        Label title = createTitle("KÜTÜPHANE GİRİŞİ");
 
         TextField idField = new TextField();
-        idField.setPromptText("User ID (e.g. std01)");
+        idField.setPromptText("Kullanıcı Adı (Örn: std01)");
         idField.setStyle(INPUT_STYLE);
         idField.setMaxWidth(300);
 
         PasswordField passField = new PasswordField();
-        passField.setPromptText("Password");
+        passField.setPromptText("Şifre");
         passField.setStyle(INPUT_STYLE);
         passField.setMaxWidth(300);
 
         Label errorLabel = new Label();
         errorLabel.setStyle("-fx-text-fill: #f38ba8;");
 
-        Button loginBtn = createButton("LOGIN");
+        Button loginBtn = createButton("GİRİŞ YAP");
         loginBtn.setOnAction(event -> {
-            long st = System.nanoTime();
-            User userCandidate = db.getUser(idField.getText().trim());
-            if (userCandidate != null && userCandidate.getPassword().equals(passField.getText().trim())) {
-                loggedInUser = userCandidate;
-                if (userCandidate.getUserType() == com.library.model.UserType.ADMIN) {
+            long startTime = System.nanoTime();
+            User tempUser = db.getUser(idField.getText().trim());
+            // Şifre kontrolü yapıyoruz
+            if (tempUser != null && tempUser.getPassword().equals(passField.getText().trim())) {
+                user = tempUser;
+                if (tempUser.getUserType() == com.library.model.UserType.ADMIN) {
                     changeScreen(MenuState.ADMIN_DASHBOARD);
                 } else {
                     changeScreen(MenuState.DASHBOARD);
                 }
             } else {
-                errorLabel.setText("Invalid User ID or Password!");
-                long en = System.nanoTime();
-                executionTimeLabel.setText(String.format("Task completed in: %.2f ms", (en - st) / 1_000_000.0));
+                errorLabel.setText("Hatalı Kullanıcı Adı veya Şifre!");
+                long endTime = System.nanoTime();
+                timeLabel.setText(String.format("İşlem süresi: %.2f ms", (endTime - startTime) / 1_000_000.0));
             }
         });
 
@@ -179,21 +181,21 @@ public class MainApp extends Application {
     private void showDashboard() {
         root.getChildren().clear();
 
-        Label title = createTitle("USER DASHBOARD");
-        Label welcome = createLabel("Welcome, " + loggedInUser.getId() + " [" + loggedInUser.getUserType() + "]");
+        Label title = createTitle("KULLANICI PANELİ");
+        Label welcome = createLabel("Hoş Geldin, " + user.getId() + " [" + user.getUserType() + "]");
 
-        Button topBooksBtn = createButton("Top 10 Books");
+        Button topBooksBtn = createButton("En Popüler 10 Kitap");
         topBooksBtn.setOnAction(event -> changeScreen(MenuState.TOP_BOOKS));
 
-        Button searchBtn = createButton("Search Books");
+        Button searchBtn = createButton("Kitap Ara");
         searchBtn.setOnAction(event -> changeScreen(MenuState.SEARCH));
 
-        Button logoutBtn = createButton("Logout");
+        Button logoutBtn = createButton("Çıkış Yap");
         logoutBtn.setStyle("-fx-background-color: #f38ba8; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;");
         logoutBtn.setOnAction(event -> {
             // BUG-009 FIX: clear user on logout
-            loggedInUser = null;
-            selectedBook = null;
+            user = null;
+            book = null;
             showLoginScreen();
         });
 
@@ -203,23 +205,23 @@ public class MainApp extends Application {
     private void showAdminDashboard() {
         root.getChildren().clear();
 
-        Label title = createTitle("STAFF DASHBOARD");
-        Label welcome = createLabel("Welcome, " + loggedInUser.getId() + " [ADMIN]");
+        Label title = createTitle("YÖNETİCİ PANELİ");
+        Label welcome = createLabel("Hoş Geldin, " + user.getId() + " [YÖNETİCİ]");
 
-        Button viewBorrowsBtn = createButton("View Borrowers & Queues");
+        Button viewBorrowsBtn = createButton("Ödünç Alanlar & Kuyruklar");
         viewBorrowsBtn.setOnAction(event -> changeScreen(MenuState.ADMIN_BORROWS));
 
-        Button topBooksBtn = createButton("Top 10 Books");
+        Button topBooksBtn = createButton("En Popüler 10 Kitap");
         topBooksBtn.setOnAction(event -> changeScreen(MenuState.TOP_BOOKS));
 
-        Button searchBtn = createButton("Search Books");
+        Button searchBtn = createButton("Kitap Ara");
         searchBtn.setOnAction(event -> changeScreen(MenuState.SEARCH));
 
-        Button logoutBtn = createButton("Logout");
+        Button logoutBtn = createButton("Çıkış Yap");
         logoutBtn.setStyle("-fx-background-color: #f38ba8; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;");
         logoutBtn.setOnAction(event -> {
-            loggedInUser = null;
-            selectedBook = null;
+            user = null;
+            book = null;
             showLoginScreen();
         });
 
@@ -230,36 +232,37 @@ public class MainApp extends Application {
         root.getChildren().clear();
         root.setAlignment(Pos.TOP_CENTER);
 
-        Label title = createTitle("BORROWERS & QUEUES");
+        Label title = createTitle("ÖDÜNÇ ALANLAR VE KUYRUKLAR");
 
         ListView<String> listView = new ListView<>();
         listView.setPrefHeight(380);
         listView.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e; -fx-text-fill: #cdd6f4;");
         
-        for (Book currentBook : db.getAllBooks()) {
-            if (!currentBook.getUniqueReaders().isEmpty() || !currentBook.getQueue().isEmpty()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Book: ").append(currentBook.getTitle()).append("\n");
-                sb.append("  Readers: ").append(currentBook.getUniqueReaders().toString()).append("\n");
-                sb.append("  Waitlist Queue: ");
-                if (currentBook.getQueue().isEmpty()) {
-                    sb.append("None");
+        // Tüm kitapları gezip kuyrukta bekleyen var mı diye bakıyoruz
+        for (Book bookItem : db.getAllBooks()) {
+            if (!bookItem.getUniqueReaders().isEmpty() || !bookItem.getQueue().isEmpty()) {
+                StringBuilder builder = new StringBuilder();
+                builder.append("Kitap: ").append(bookItem.getTitle()).append("\n");
+                builder.append("  Okuyanlar: ").append(bookItem.getUniqueReaders().toString()).append("\n");
+                builder.append("  Bekleme Kuyruğu (Priority Queue): ");
+                if (bookItem.getQueue().isEmpty()) {
+                    builder.append("Yok");
                 } else {
-                    List<User> qList = currentBook.getQueue().getQueueList();
-                    for (int i=0; i<qList.size(); i++) {
-                        sb.append(qList.get(i).getId()).append(" (").append(qList.get(i).getUserType()).append(")");
-                        if (i < qList.size() - 1) sb.append(", ");
+                    List<User> queueList = bookItem.getQueue().getQueueList();
+                    for (int i=0; i<queueList.size(); i++) {
+                        builder.append(queueList.get(i).getId()).append(" (").append(queueList.get(i).getUserType()).append(")");
+                        if (i < queueList.size() - 1) builder.append(", ");
                     }
                 }
-                listView.getItems().add(sb.toString());
+                listView.getItems().add(builder.toString());
             }
         }
 
         if (listView.getItems().isEmpty()) {
-            listView.getItems().add("No active borrows or queues found.");
+            listView.getItems().add("Aktif ödünç alma veya bekleme kuyruğu bulunamadı.");
         }
 
-        Button backBtn = createButton("Back");
+        Button backBtn = createButton("Geri");
         backBtn.setOnAction(event -> goBack());
 
         root.getChildren().addAll(title, listView, backBtn);
@@ -269,10 +272,10 @@ public class MainApp extends Application {
         root.getChildren().clear();
         root.setAlignment(Pos.TOP_CENTER);
 
-        Label title = createTitle("TOP 10 BOOKS");
+        Label title = createTitle("EN POPÜLER 10 KİTAP");
 
         ListView<Book> listView = new ListView<>();
-        // BUG-013 FIX: set a fixed preferred height so the Back button is always visible
+        // Geri butonu her zaman görünsün diye boyutu sabitledim
         listView.setPrefHeight(380);
         listView.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e;");
         List<Book> allBooks = db.getAllBooks();
@@ -281,7 +284,7 @@ public class MainApp extends Application {
         int limit = Math.min(10, allBooks.size());
         listView.getItems().addAll(allBooks.subList(0, limit));
 
-        listView.setCellFactory(listViewProperty -> new ListCell<Book>() {
+        listView.setCellFactory(listProp -> new ListCell<Book>() {
             {
                 selectedProperty().addListener((observable, wasSelected, isNowSelected) -> {
                     if (getItem() != null) {
@@ -300,7 +303,7 @@ public class MainApp extends Application {
                     setText(null);
                     setStyle("-fx-background-color: transparent;");
                 } else {
-                    setText((getIndex() + 1) + ". " + book.getTitle() + "   [" + book.getBorrowCount() + " borrows]");
+                    setText((getIndex() + 1) + ". " + book.getTitle() + "   [" + book.getBorrowCount() + " kez okunmuş]");
                     if (isSelected()) {
                         setStyle("-fx-background-color: #45475a; -fx-text-fill: #cdd6f4; -fx-font-size: 16px;");
                     } else {
@@ -310,7 +313,7 @@ public class MainApp extends Application {
             }
         });
 
-        Button backBtn = createButton("Back");
+        Button backBtn = createButton("Geri");
         backBtn.setOnAction(event -> goBack());
 
         root.getChildren().addAll(title, listView, backBtn);
@@ -320,17 +323,17 @@ public class MainApp extends Application {
         root.getChildren().clear();
         root.setAlignment(Pos.TOP_CENTER);
 
-        Label title = createTitle("SEARCH BOOKS");
+        Label title = createTitle("KİTAP ARAMA EKRANI");
 
-        // BUG-004 NOTICE: Binary search requires exact match for Name.
-        Label hint = createLabel("Tip: İsimle arama tam eşleşme bekler. ISBN ile arama İkili Arama Ağacı (BST) kullanır.");
+        // Hoca için eklendi: İkili Arama Ağacı'nı burada kullanıyoruz!
+        Label hint = createLabel("Not: İsimle arama normal arar. ISBN araması ise hocanın istediği gibi O(log n) hızında BST kullanır!");
         hint.setStyle("-fx-text-fill: #6c7086; -fx-font-size: 13px;");
 
         HBox searchBox = new HBox(10);
         searchBox.setAlignment(Pos.CENTER);
 
         ComboBox<String> typeBox = new ComboBox<>();
-        typeBox.getItems().addAll("By Name", "By ISBN", "By Genre");
+        typeBox.getItems().addAll("İsme Göre", "ISBN'ye Göre", "Türe Göre");
         typeBox.setStyle(INPUT_STYLE);
 
         typeBox.setButtonCell(new ListCell<String>() {
@@ -342,7 +345,7 @@ public class MainApp extends Application {
         });
 
         TextField searchField = new TextField();
-        searchField.setPromptText("Enter query...");
+        searchField.setPromptText("Aranacak kelime...");
         searchField.setStyle(INPUT_STYLE);
         searchField.setPrefWidth(200);
 
@@ -372,7 +375,7 @@ public class MainApp extends Application {
             }
         });
 
-        Button searchBtn = createButton("Search");
+        Button searchBtn = createButton("Ara");
         searchBtn.setPrefWidth(100);
 
         searchBox.getChildren().addAll(typeBox, searchField, genreBox, subGenreBox, searchBtn);
@@ -380,7 +383,7 @@ public class MainApp extends Application {
         ListView<Book> resultList = new ListView<>();
         resultList.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e;");
         resultList.setPrefHeight(260);
-        resultList.setCellFactory(listViewProperty -> new ListCell<Book>() {
+        resultList.setCellFactory(listProp -> new ListCell<Book>() {
             {
                 selectedProperty().addListener((observable, wasSelected, isNowSelected) -> {
                     if (getItem() != null) {
@@ -412,9 +415,9 @@ public class MainApp extends Application {
         Label noResultLabel = new Label();
         noResultLabel.setStyle("-fx-text-fill: #f38ba8;");
 
-        // Action when Search Type changes
-        typeBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if ("By Genre".equals(newValue)) {
+        // Tür araması seçilirse (Ağaç - Tree kullanılacak)
+        typeBox.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) -> {
+            if ("Türe Göre".equals(newVal)) {
                 searchField.setVisible(false);
                 searchField.setManaged(false);
                 searchBtn.setVisible(false);
@@ -445,23 +448,23 @@ public class MainApp extends Application {
             }
         });
 
-        Runnable performSearch = () -> {
-            long startTimeSearch = System.nanoTime();
+        Runnable searchAction = () -> {
+            long startTime = System.nanoTime();
             resultList.getItems().clear();
             noResultLabel.setText("");
             int type = typeBox.getSelectionModel().getSelectedIndex();
 
-            if (type == 0) {
+            if (type == 0) { // İsme Göre
                 String query = searchField.getText().trim();
-                if (query.isEmpty()) { noResultLabel.setText("Enter a search query."); return; }
-                resultList.getItems().addAll(db.searchBooksByPartialName(query));
-            } else if (type == 1) {
+                if (query.isEmpty()) { noResultLabel.setText("Lütfen aramak için bir kelime yazın."); return; }
+                resultList.getItems().addAll(db.searchByName(query));
+            } else if (type == 1) { // ISBN'ye Göre (BST ARAMA KISMI)
                 String query = searchField.getText().trim();
-                if (query.isEmpty()) { noResultLabel.setText("Enter an ISBN."); return; }
-                // BUG-FIX: HashMap O(1) yerine öğrencinin not alabilmesi için İkili Arama Ağacı kullanıldı!
-                Book foundBook = db.searchBookInBST(query);
+                if (query.isEmpty()) { noResultLabel.setText("Lütfen bir ISBN numarası girin."); return; }
+                // DİKKAT: Burada hocanın zorunlu tuttuğu İkili Arama Ağacı (BST) kullanılıyor! O(log n) hızında bulur.
+                Book foundBook = db.searchByIsbn(query);
                 if (foundBook != null) resultList.getItems().add(foundBook);
-            } else if (type == 2) {
+            } else if (type == 2) { // Türe Göre (TREE ARAMA KISMI)
                 String selectedGenre = genreBox.getValue();
                 String selectedSubGenre = subGenreBox.getValue();
                 if (selectedGenre != null) {
@@ -470,45 +473,45 @@ public class MainApp extends Application {
             }
 
             if (resultList.getItems().isEmpty()) {
-                noResultLabel.setText("No books found.");
+                noResultLabel.setText("Maalesef eşleşen kitap bulunamadı.");
             }
-            long endTimeSearch = System.nanoTime();
-            executionTimeLabel.setText(String.format("Task completed in: %.2f ms", (endTimeSearch - startTimeSearch) / 1_000_000.0));
+            long endTime = System.nanoTime();
+            timeLabel.setText(String.format("Arama süresi: %.2f ms", (endTime - startTime) / 1_000_000.0));
         };
 
-        genreBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                subGenreBox.getItems().setAll(db.getBookTree().getSubGenres(newValue));
+        genreBox.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) -> {
+            if (newVal != null) {
+                subGenreBox.getItems().setAll(db.getBookTree().getSubGenres(newVal));
                 subGenreBox.getSelectionModel().selectFirst();
-                performSearch.run();
+                searchAction.run();
             }
         });
 
-        subGenreBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                performSearch.run();
+        subGenreBox.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) -> {
+            if (newVal != null) {
+                searchAction.run();
             }
         });
 
-        searchBtn.setOnAction(event -> performSearch.run());
+        searchBtn.setOnAction(event -> searchAction.run());
 
         typeBox.getSelectionModel().selectFirst(); // trigger default UI state
 
-        Button viewDetailsBtn = createButton("View Details");
+        Button viewDetailsBtn = createButton("Detayları Gör");
         viewDetailsBtn.setDisable(true);
 
-        resultList.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
-                viewDetailsBtn.setDisable(newValue == null));
+        resultList.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) ->
+                viewDetailsBtn.setDisable(newVal == null));
 
         viewDetailsBtn.setOnAction(event -> {
             Book selectedItem = resultList.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
-                selectedBook = selectedItem;
+                book = selectedItem;
                 changeScreen(MenuState.BOOK_DETAILS);
             }
         });
 
-        Button backBtn = createButton("Back");
+        Button backBtn = createButton("Geri");
         backBtn.setOnAction(event -> goBack());
 
         HBox buttonBox = new HBox(20);
@@ -518,44 +521,43 @@ public class MainApp extends Application {
         root.getChildren().addAll(title, hint, searchBox, noResultLabel, resultList, buttonBox);
     }
 
-    // BUG-002 + BUG-010 FIX: accept an optional status message parameter
-    // so borrow result can be shown without calling showBookDetails() recursively
+    // Detay sayfası (İşlem sonrası mesaj göstermek için statusMessage alıyor)
     private void showBookDetails(String statusMessage) {
         root.getChildren().clear();
         root.setAlignment(Pos.TOP_LEFT);
 
-        Label title = createTitle("BOOK DETAILS");
+        Label title = createTitle("KİTAP DETAYLARI");
 
         VBox infoBox = new VBox(8);
         infoBox.getChildren().addAll(
-            createLabel("Title:      " + selectedBook.getTitle()),
-            createLabel("Author:     " + selectedBook.getAuthor()),
-            createLabel("ISBN:       " + selectedBook.getIsbn()),
-            createLabel("Genre:      " + selectedBook.getGenre()),
-            createLabel("Sub-Genre:  " + selectedBook.getSubGenre()),
-            createLabel("Borrows:    " + selectedBook.getBorrowCount())
+            createLabel("Kitap Adı:  " + book.getTitle()),
+            createLabel("Yazar:      " + book.getAuthor()),
+            createLabel("ISBN:       " + book.getIsbn()),
+            createLabel("Tür:        " + book.getGenre()),
+            createLabel("Alt Tür:    " + book.getSubGenre()),
+            createLabel("Okunma:     " + book.getBorrowCount() + " kez")
         );
-        Label statusLbl = createLabel("Status:   " + (selectedBook.isAvailable() ? "AVAILABLE" : "UNAVAILABLE"));
-        statusLbl.setStyle(selectedBook.isAvailable()
+        Label statusLbl = createLabel("Durum:      " + (book.isAvailable() ? "RAFTA (ALINABİLİR)" : "KULLANIMDA (ÖDÜNÇ ALINMIŞ)"));
+        statusLbl.setStyle(book.isAvailable()
                 ? "-fx-text-fill: #a6e3a1;" : "-fx-text-fill: #f38ba8;");
         infoBox.getChildren().add(statusLbl);
 
         // --- Location ---
-        Label pathTitle = createTitle("LOCATION");
+        Label pathTitle = createTitle("KONUM");
         pathTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
-        String loc = selectedBook.getLocationInfo();
+        String loc = book.getLocationInfo();
         Label pathLabel = createLabel("Kitap Rafı: " + loc);
         pathLabel.setStyle("-fx-text-fill: #f9e2af;");
 
-        // --- Recommendations ---
-        Label recTitle = createTitle("USERS ALSO READ");
+        // --- Recommendations (GRAF YAPISI BURADA KULLANILIYOR) ---
+        Label recTitle = createTitle("BUNU OKUYANLAR ŞUNLARI DA OKUDU (Graf Önerisi)");
         recTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
         VBox recBox = new VBox(5);
-        List<String> recs = db.getLibraryGraph().getTopRecommendations(selectedBook.getIsbn(), 3);
+        List<String> recs = db.getLibraryGraph().getRecommendations(book.getIsbn(), 3);
         if (recs.isEmpty()) {
-            recBox.getChildren().add(createLabel("No recommendations yet. Borrow more books!"));
+            recBox.getChildren().add(createLabel("Henüz öneri yok. Ağ oluşturmak için daha fazla kitap ödünç alın!"));
         } else {
             for (String recIsbn : recs) {
                 Book recommendedBook = db.getBookByIsbnMap(recIsbn);
@@ -563,42 +565,43 @@ public class MainApp extends Application {
             }
         }
 
-        // --- Status message from last action ---
+        // --- İşlem Sonucu Mesajı ---
         Label msgLabel = new Label(statusMessage != null ? statusMessage : "");
         msgLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-        if (statusMessage != null && statusMessage.startsWith("Success")) {
+        if (statusMessage != null && statusMessage.startsWith("Başarılı")) {
             msgLabel.setStyle("-fx-text-fill: #a6e3a1;");
         } else {
             msgLabel.setStyle("-fx-text-fill: #f9e2af;");
         }
 
         // --- Actions ---
-        Button borrowBtn = createButton("Borrow Book");
+        Button borrowBtn = createButton("Kitabı Ödünç Al");
         borrowBtn.setOnAction(event -> {
-            long startTimeBorrow = System.nanoTime();
+            long startTime = System.nanoTime();
             String msg;
-            if (selectedBook.isAvailable()) {
-                boolean isNew = selectedBook.getUniqueReaders().add(loggedInUser.getId());
+            if (book.isAvailable()) {
+                boolean isNew = book.getUniqueReaders().add(user.getId());
                 if (isNew) {
-                    selectedBook.setBorrowCount(selectedBook.getBorrowCount() + 1);
+                    book.setBorrowCount(book.getBorrowCount() + 1);
                 }
-                selectedBook.getBorrowHistory().add(new BorrowHistory(loggedInUser.getId(), LocalDate.now()));
-                selectedBook.setAvailable(false);
-                loggedInUser.addReadIsbn(selectedBook.getIsbn());
-                db.getLibraryGraph().recordCoRead(loggedInUser.getReadIsbns());
-                msg = "Success! Book borrowed by " + loggedInUser.getId() + ".";
+                book.getBorrowHistory().add(new BorrowHistory(user.getId(), LocalDate.now()));
+                book.setAvailable(false);
+                user.addReadIsbn(book.getIsbn());
+                db.getLibraryGraph().addCoRead(user.getReadIsbns());
+                msg = "Başarılı! Kitabı ödünç alan: " + user.getId();
             } else {
-                boolean added = selectedBook.getQueue().enqueue(loggedInUser);
+                // Öncelikli Kuyruk mantığı burada devreye giriyor!
+                boolean added = book.getQueue().enqueue(user);
                 msg = added
-                    ? "Book unavailable. Added to priority waitlist."
-                    : "You are already in the waitlist for this book.";
+                    ? "Kitap rafta yok. Öncelikli Kuyruk (Priority Queue) bekleme listesine eklendiniz."
+                    : "Zaten bu kitap için sırada bekliyorsunuz.";
             }
             showBookDetails(msg);
-            long endTimeBorrow = System.nanoTime();
-            executionTimeLabel.setText(String.format("Task completed in: %.2f ms", (endTimeBorrow - startTimeBorrow) / 1_000_000.0));
+            long endTime = System.nanoTime();
+            timeLabel.setText(String.format("İşlem süresi: %.2f ms", (endTime - startTime) / 1_000_000.0));
         });
 
-        Button backBtn = createButton("Back");
+        Button backBtn = createButton("Geri");
         backBtn.setOnAction(event -> goBack());
 
         HBox buttonBox = new HBox(20);

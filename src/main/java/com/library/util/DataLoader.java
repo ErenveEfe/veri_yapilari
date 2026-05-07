@@ -17,14 +17,14 @@ public class DataLoader {
         db.addUser(new User("aca02", "abcd", UserType.ACADEMICIAN));
         db.addUser(new User("admin", "admin", UserType.ADMIN));
 
-        String csvFilePath = "library_dataset.csv";
+        String path = "library_dataset.csv";
         String line = "";
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(csvFilePath, java.nio.charset.StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(path, java.nio.charset.StandardCharsets.UTF_8))) {
             // Skip the header
-            bufferedReader.readLine();
+            reader.readLine();
 
-            while ((line = bufferedReader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 // Use comma as separator, ignoring commas inside quotes
                 String[] bookData = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
                 

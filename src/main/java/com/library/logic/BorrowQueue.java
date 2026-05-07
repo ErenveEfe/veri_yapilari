@@ -10,12 +10,12 @@ import java.util.PriorityQueue;
 
 public class BorrowQueue {
     // Öncelikli Kuyruk (Priority Queue) ve arka planda Heap yapısı kullanıyoruz
-    private PriorityQueue<User> priorityQueue;
+    private PriorityQueue<User> queue;
 
     public BorrowQueue() {
         // Akademisyenlerin önceliği var. Akademisyen ise başa, değilse sona atan bir kural yazdık.
         // Bu Comparator, PriorityQueue'nun Heap (Ağaç tabanlı öncelik) mantığıyla sıralama yapmasını sağlar.
-        Comparator<User> userPriorityComparator = new Comparator<User>() {
+        Comparator<User> priorityComparator = new Comparator<User>() {
             @Override
             public int compare(User user1, User user2) {
                 // Eğer 1. kullanıcı akademisyen, 2. öğrenci ise 1. öne geçer (-1)
@@ -30,36 +30,36 @@ public class BorrowQueue {
             }
         };
         
-        priorityQueue = new PriorityQueue<>(userPriorityComparator);
+        queue = new PriorityQueue<>(priorityComparator);
     }
 
     public boolean enqueue(User user) {
         // Kuyrukta zaten var mı diye kontrol edelim
-        for (User queuedUser : priorityQueue) {
+        for (User queuedUser : queue) {
             if (queuedUser.getId().equals(user.getId())) {
                 return false;
             }
         }
         
-        priorityQueue.offer(user);
+        queue.offer(user);
         return true;
     }
 
     public User dequeue() {
         // En yüksek öncelikli olanı (Heap'in tepesindekini) çıkartıp verir (O(log n))
-        return priorityQueue.poll();
+        return queue.poll();
     }
 
     public boolean isEmpty() {
-        return priorityQueue.isEmpty();
+        return queue.isEmpty();
     }
 
     public List<User> getQueueList() {
         // Arayüzde göstermek için listeye çevirip döndürüyoruz
         List<User> list = new ArrayList<>();
-        PriorityQueue<User> copyQueue = new PriorityQueue<>(priorityQueue);
-        while (!copyQueue.isEmpty()) {
-            list.add(copyQueue.poll());
+        PriorityQueue<User> copy = new PriorityQueue<>(queue);
+        while (!copy.isEmpty()) {
+            list.add(copy.poll());
         }
         return list;
     }

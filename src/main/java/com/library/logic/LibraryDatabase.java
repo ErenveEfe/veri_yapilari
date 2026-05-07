@@ -12,30 +12,30 @@ import java.util.List;
 public class LibraryDatabase {
     private HashMap<String, Book> bookMap;
     private HashMap<String, User> userMap;
-    private List<Book> sortedBooksByName;
+    private List<Book> sortedBooks;
     
-    private BookTree bookTree;
-    private BookBST bookBST; // Yeni Eklenen İkili Arama Ağacımız
-    private LibraryGraph libraryGraph;
+    private BookTree categoryTree;
+    private BookBST searchTree; // Yeni Eklenen İkili Arama Ağacımız
+    private LibraryGraph graph;
 
     public LibraryDatabase() {
         bookMap = new HashMap<>();
         userMap = new HashMap<>();
-        sortedBooksByName = new ArrayList<>();
-        bookTree = new BookTree();
-        bookBST = new BookBST(); // Ağacı başlattık
-        libraryGraph = new LibraryGraph();
+        sortedBooks = new ArrayList<>();
+        categoryTree = new BookTree();
+        searchTree = new BookBST(); // Ağacı başlattık
+        graph = new LibraryGraph();
     }
 
     public void addBook(Book book) {
         bookMap.put(book.getIsbn(), book);
-        sortedBooksByName.add(book);
+        sortedBooks.add(book);
         
         // Yeni kitabı İkili Arama Ağacına (BST) ekliyoruz
-        bookBST.insert(book);
+        searchTree.insert(book);
         
         sortBooks();
-        bookTree.addBookToCategory(book.getGenre(), book.getSubGenre(), book);
+        categoryTree.addBook(book.getGenre(), book.getSubGenre(), book);
     }
 
     public void addUser(User user) {
@@ -51,27 +51,27 @@ public class LibraryDatabase {
     }
 
     public List<Book> getAllBooks() {
-        return new ArrayList<>(sortedBooksByName);
+        return new ArrayList<>(sortedBooks);
     }
     
-    public BookTree getBookTree() { return bookTree; }
-    public LibraryGraph getLibraryGraph() { return libraryGraph; }
+    public BookTree getBookTree() { return categoryTree; }
+    public LibraryGraph getLibraryGraph() { return graph; }
 
     private void sortBooks() {
-        Collections.sort(sortedBooksByName, Comparator.comparing(Book::getTitle, String.CASE_INSENSITIVE_ORDER));
+        Collections.sort(sortedBooks, Comparator.comparing(Book::getTitle, String.CASE_INSENSITIVE_ORDER));
     }
 
     // İKİLİ ARAMA AĞACINDA (BST) ARAMA YAPIYORUZ
-    public Book searchBookInBST(String targetIsbn) {
-        return bookBST.search(targetIsbn);
+    public Book searchByIsbn(String targetIsbn) {
+        return searchTree.search(targetIsbn);
     }
 
-    public List<Book> searchBooksByPartialName(String targetName) {
+    public List<Book> searchByName(String targetName) {
         List<Book> result = new ArrayList<>();
         String lowerTarget = targetName.toLowerCase();
-        for (Book currentBook : sortedBooksByName) {
-            if (currentBook.getTitle().toLowerCase().contains(lowerTarget)) {
-                result.add(currentBook);
+        for (Book bookItem : sortedBooks) {
+            if (bookItem.getTitle().toLowerCase().contains(lowerTarget)) {
+                result.add(bookItem);
             }
         }
         return result;

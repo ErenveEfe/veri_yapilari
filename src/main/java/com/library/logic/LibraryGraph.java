@@ -11,45 +11,45 @@ import java.util.Map;
 public class LibraryGraph {
     
     // Hangi kitap hangi kitapla kaç kere beraber okunmuş onu tutan Ağırlıklı Graf (Weighted Graph)
-    private Map<String, Map<String, Integer>> recommendationGraph;
+    private Map<String, Map<String, Integer>> graph;
 
     public LibraryGraph() {
-        recommendationGraph = new HashMap<>();
+        graph = new HashMap<>();
     }
 
     // İki kitap beraber okunduysa, aralarındaki bağı (kenarı/edge) güçlendirir
-    public void recordCoRead(List<String> userReadIsbns) {
-        for (int i = 0; i < userReadIsbns.size(); i++) {
-            for (int j = i + 1; j < userReadIsbns.size(); j++) {
-                String firstBookIsbn = userReadIsbns.get(i);
-                String secondBookIsbn = userReadIsbns.get(j);
+    public void addCoRead(List<String> readList) {
+        for (int i = 0; i < readList.size(); i++) {
+            for (int j = i + 1; j < readList.size(); j++) {
+                String isbn1 = readList.get(i);
+                String isbn2 = readList.get(j);
 
                 // Graf'ta düğümleri (node) oluştur
-                recommendationGraph.putIfAbsent(firstBookIsbn, new HashMap<>());
-                recommendationGraph.putIfAbsent(secondBookIsbn, new HashMap<>());
+                graph.putIfAbsent(isbn1, new HashMap<>());
+                graph.putIfAbsent(isbn2, new HashMap<>());
 
                 // Ağırlıkları (bağlantı gücünü) arttır
-                recommendationGraph.get(firstBookIsbn).put(secondBookIsbn, recommendationGraph.get(firstBookIsbn).getOrDefault(secondBookIsbn, 0) + 1);
-                recommendationGraph.get(secondBookIsbn).put(firstBookIsbn, recommendationGraph.get(secondBookIsbn).getOrDefault(firstBookIsbn, 0) + 1);
+                graph.get(isbn1).put(isbn2, graph.get(isbn1).getOrDefault(isbn2, 0) + 1);
+                graph.get(isbn2).put(isbn1, graph.get(isbn2).getOrDefault(isbn1, 0) + 1);
             }
         }
     }
 
     // Bir kitaba en çok benzeyen (beraber okunan) limit sayıda kitabı getirir
-    public List<String> getTopRecommendations(String isbn, int limit) {
-        if (!recommendationGraph.containsKey(isbn))
+    public List<String> getRecommendations(String isbn, int limit) {
+        if (!graph.containsKey(isbn))
             return new ArrayList<>();
 
-        Map<String, Integer> bookConnections = recommendationGraph.get(isbn);
+        Map<String, Integer> edges = graph.get(isbn);
         
         // Graf kenarlarını (edge) ağırlıklarına göre büyükten küçüğe sıralıyoruz
-        List<Map.Entry<String, Integer>> sortedEdges = new ArrayList<>(bookConnections.entrySet());
-        sortedEdges.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+        List<Map.Entry<String, Integer>> list = new ArrayList<>(edges.entrySet());
+        list.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
 
-        List<String> recommendedIsbns = new ArrayList<>();
-        for (int i = 0; i < Math.min(limit, sortedEdges.size()); i++) {
-            recommendedIsbns.add(sortedEdges.get(i).getKey());
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < Math.min(limit, list.size()); i++) {
+            result.add(list.get(i).getKey());
         }
-        return recommendedIsbns;
+        return result;
     }
 }

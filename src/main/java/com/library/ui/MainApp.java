@@ -2,6 +2,7 @@ package com.library.ui;
 
 import com.library.logic.LibraryDatabase;
 import com.library.logic.NavigationManager;
+import com.library.logic.PerformanceBenchmark;
 import com.library.model.Book;
 import com.library.model.BorrowHistory;
 import com.library.model.User;
@@ -16,7 +17,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -40,6 +46,11 @@ public class MainApp extends Application {
     private static final String BG_COLOR = "-fx-background-color: #1e1e2e;";
     private static final String TEXT_COLOR = "-fx-text-fill: #cdd6f4;";
     private static final String BTN_STYLE = "-fx-background-color: #89b4fa; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;";
+    private static final String BTN_HOVER_STYLE = "-fx-background-color: #74c7ec; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;";
+    private static final String BTN_PRESSED_STYLE = "-fx-background-color: #585b70; -fx-text-fill: #cdd6f4; -fx-font-weight: bold; -fx-background-radius: 8;";
+    private static final String BTN_DANGER_STYLE = "-fx-background-color: #f38ba8; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;";
+    private static final String BTN_DANGER_HOVER = "-fx-background-color: #eba0ac; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;";
+    private static final String BTN_DANGER_PRESSED = "-fx-background-color: #a6394f; -fx-text-fill: #cdd6f4; -fx-font-weight: bold; -fx-background-radius: 8;";
     private static final String INPUT_STYLE = "-fx-background-color: #313244; -fx-text-fill: #cdd6f4; -fx-background-radius: 5;";
 
     @Override
@@ -92,7 +103,60 @@ public class MainApp extends Application {
         btn.setPrefWidth(200);
         btn.setPrefHeight(40);
         btn.setFont(Font.font("Arial", 14));
+
+        // Hover efekti: üzerine gelince renk değişimi + hafif büyüme
+        btn.setOnMouseEntered(e -> {
+            btn.setStyle(BTN_HOVER_STYLE);
+            btn.setScaleX(1.05);
+            btn.setScaleY(1.05);
+        });
+        btn.setOnMouseExited(e -> {
+            btn.setStyle(BTN_STYLE);
+            btn.setScaleX(1.0);
+            btn.setScaleY(1.0);
+        });
+        // Basılı tutunca efekti: daha koyu renk + hafif küçülme
+        btn.setOnMousePressed(e -> {
+            btn.setStyle(BTN_PRESSED_STYLE);
+            btn.setScaleX(0.97);
+            btn.setScaleY(0.97);
+        });
+        btn.setOnMouseReleased(e -> {
+            btn.setStyle(btn.isHover() ? BTN_HOVER_STYLE : BTN_STYLE);
+            btn.setScaleX(btn.isHover() ? 1.05 : 1.0);
+            btn.setScaleY(btn.isHover() ? 1.05 : 1.0);
+        });
+
         return btn;
+    }
+
+    private Button createDangerButton(String text) {
+        Button btn = new Button(text);
+        btn.setStyle(BTN_DANGER_STYLE);
+        btn.setPrefWidth(200);
+        btn.setPrefHeight(40);
+        btn.setFont(Font.font("Arial", 14));
+
+        btn.setOnMouseEntered(e -> { btn.setStyle(BTN_DANGER_HOVER); btn.setScaleX(1.05); btn.setScaleY(1.05); });
+        btn.setOnMouseExited(e -> { btn.setStyle(BTN_DANGER_STYLE); btn.setScaleX(1.0); btn.setScaleY(1.0); });
+        btn.setOnMousePressed(e -> { btn.setStyle(BTN_DANGER_PRESSED); btn.setScaleX(0.97); btn.setScaleY(0.97); });
+        btn.setOnMouseReleased(e -> {
+            btn.setStyle(btn.isHover() ? BTN_DANGER_HOVER : BTN_DANGER_STYLE);
+            btn.setScaleX(btn.isHover() ? 1.05 : 1.0);
+            btn.setScaleY(btn.isHover() ? 1.05 : 1.0);
+        });
+
+        return btn;
+    }
+
+    // Kopyalanabilir metin alanı — Label yerine kullanılır, düzenlenemez ama seçilebilir
+    private TextField createCopyableField(String text) {
+        TextField field = new TextField(text);
+        field.setEditable(false);
+        field.setStyle(INPUT_STYLE + " -fx-border-color: transparent; -fx-background-color: transparent; -fx-text-fill: #cdd6f4;");
+        field.setFont(Font.font("Arial", 15));
+        field.setPrefWidth(550);
+        return field;
     }
 
     // ---------- Navigation ----------
@@ -126,6 +190,7 @@ public class MainApp extends Application {
             case BOOK_DETAILS: showBookDetails(null); break;
             case ADMIN_DASHBOARD: showAdminDashboard(); break;
             case ADMIN_BORROWS: showAdminBorrows(); break;
+            case BENCHMARK: showBenchmarkScreen(); break;
         }
 
         long endTime = System.nanoTime();
@@ -190,8 +255,10 @@ public class MainApp extends Application {
         Button searchBtn = createButton("Kitap Ara");
         searchBtn.setOnAction(event -> changeScreen(MenuState.SEARCH));
 
-        Button logoutBtn = createButton("Çıkış Yap");
-        logoutBtn.setStyle("-fx-background-color: #f38ba8; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;");
+        Button benchmarkBtn = createButton("Performans Testi");
+        benchmarkBtn.setOnAction(event -> changeScreen(MenuState.BENCHMARK));
+
+        Button logoutBtn = createDangerButton("Çıkış Yap");
         logoutBtn.setOnAction(event -> {
             // BUG-009 FIX: clear user on logout
             user = null;
@@ -199,7 +266,7 @@ public class MainApp extends Application {
             showLoginScreen();
         });
 
-        root.getChildren().addAll(title, welcome, topBooksBtn, searchBtn, logoutBtn);
+        root.getChildren().addAll(title, welcome, topBooksBtn, searchBtn, benchmarkBtn, logoutBtn);
     }
 
     private void showAdminDashboard() {
@@ -217,15 +284,17 @@ public class MainApp extends Application {
         Button searchBtn = createButton("Kitap Ara");
         searchBtn.setOnAction(event -> changeScreen(MenuState.SEARCH));
 
-        Button logoutBtn = createButton("Çıkış Yap");
-        logoutBtn.setStyle("-fx-background-color: #f38ba8; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;");
+        Button benchmarkBtn = createButton("Performans Testi");
+        benchmarkBtn.setOnAction(event -> changeScreen(MenuState.BENCHMARK));
+
+        Button logoutBtn = createDangerButton("Çıkış Yap");
         logoutBtn.setOnAction(event -> {
             user = null;
             book = null;
             showLoginScreen();
         });
 
-        root.getChildren().addAll(title, welcome, viewBorrowsBtn, topBooksBtn, searchBtn, logoutBtn);
+        root.getChildren().addAll(title, welcome, viewBorrowsBtn, topBooksBtn, searchBtn, benchmarkBtn, logoutBtn);
     }
 
     private void showAdminBorrows() {
@@ -273,16 +342,21 @@ public class MainApp extends Application {
         root.setAlignment(Pos.TOP_CENTER);
 
         Label title = createTitle("EN POPÜLER 10 KİTAP");
+        // DİZİ (ARRAY) yapısından okuyoruz — sabit boyutlu Book[10] dizisi
+        Label hint = createLabel("Not: Bu liste sabit boyutlu Dizi (Array) veri yapısından okunmaktadır.");
+        hint.setStyle("-fx-text-fill: #6c7086; -fx-font-size: 13px;");
 
         ListView<Book> listView = new ListView<>();
-        // Geri butonu her zaman görünsün diye boyutu sabitledim
-        listView.setPrefHeight(380);
+        listView.setPrefHeight(330);
         listView.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e;");
-        List<Book> allBooks = db.getAllBooks();
-        allBooks.sort((book1, book2) -> Integer.compare(book2.getBorrowCount(), book1.getBorrowCount()));
 
-        int limit = Math.min(10, allBooks.size());
-        listView.getItems().addAll(allBooks.subList(0, limit));
+        // Sabit boyutlu diziden (Array) okuyoruz — ArrayList değil!
+        Book[] topArray = db.getTopBooksArray();
+        for (int i = 0; i < topArray.length; i++) {
+            if (topArray[i] != null) {
+                listView.getItems().add(topArray[i]);
+            }
+        }
 
         listView.setCellFactory(listProp -> new ListCell<Book>() {
             {
@@ -313,10 +387,28 @@ public class MainApp extends Application {
             }
         });
 
+        Button viewDetailsBtn = createButton("Detayları Gör");
+        viewDetailsBtn.setDisable(true);
+
+        listView.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) ->
+                viewDetailsBtn.setDisable(newVal == null));
+
+        viewDetailsBtn.setOnAction(event -> {
+            Book selectedItem = listView.getSelectionModel().getSelectedItem();
+            if (selectedItem != null) {
+                book = selectedItem;
+                changeScreen(MenuState.BOOK_DETAILS);
+            }
+        });
+
         Button backBtn = createButton("Geri");
         backBtn.setOnAction(event -> goBack());
 
-        root.getChildren().addAll(title, listView, backBtn);
+        HBox buttonBox = new HBox(20);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.getChildren().addAll(backBtn, viewDetailsBtn);
+
+        root.getChildren().addAll(title, hint, listView, buttonBox);
     }
 
     private void showSearchScreen() {
@@ -528,27 +620,30 @@ public class MainApp extends Application {
 
         Label title = createTitle("KİTAP DETAYLARI");
 
-        VBox infoBox = new VBox(8);
+        // Kopyalanabilir metin alanları kullanıyoruz — seçip kopyalama yapılabilir
+        VBox infoBox = new VBox(5);
         infoBox.getChildren().addAll(
-            createLabel("Kitap Adı:  " + book.getTitle()),
-            createLabel("Yazar:      " + book.getAuthor()),
-            createLabel("ISBN:       " + book.getIsbn()),
-            createLabel("Tür:        " + book.getGenre()),
-            createLabel("Alt Tür:    " + book.getSubGenre()),
-            createLabel("Okunma:     " + book.getBorrowCount() + " kez")
+            createCopyableField("Kitap Adı:  " + book.getTitle()),
+            createCopyableField("Yazar:      " + book.getAuthor()),
+            createCopyableField("ISBN:       " + book.getIsbn()),
+            createCopyableField("Tür:        " + book.getGenre()),
+            createCopyableField("Alt Tür:    " + book.getSubGenre()),
+            createCopyableField("Okunma:     " + book.getBorrowCount() + " kez")
         );
-        Label statusLbl = createLabel("Durum:      " + (book.isAvailable() ? "RAFTA (ALINABİLİR)" : "KULLANIMDA (ÖDÜNÇ ALINMIŞ)"));
-        statusLbl.setStyle(book.isAvailable()
-                ? "-fx-text-fill: #a6e3a1;" : "-fx-text-fill: #f38ba8;");
-        infoBox.getChildren().add(statusLbl);
+
+        TextField statusField = createCopyableField("Durum:      " + (book.isAvailable() ? "RAFTA (ALINABİLİR)" : "KULLANIMDA (ÖDÜNÇ ALINMIŞ)"));
+        statusField.setStyle(book.isAvailable()
+                ? "-fx-text-fill: #a6e3a1; -fx-background-color: transparent; -fx-border-color: transparent;"
+                : "-fx-text-fill: #f38ba8; -fx-background-color: transparent; -fx-border-color: transparent;");
+        statusField.setFont(Font.font("Arial", FontWeight.BOLD, 15));
+        infoBox.getChildren().add(statusField);
 
         // --- Location ---
         Label pathTitle = createTitle("KONUM");
         pathTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
-        String loc = book.getLocationInfo();
-        Label pathLabel = createLabel("Kitap Rafı: " + loc);
-        pathLabel.setStyle("-fx-text-fill: #f9e2af;");
+        TextField pathField = createCopyableField("Kitap Rafı: " + book.getLocationInfo());
+        pathField.setStyle("-fx-text-fill: #f9e2af; -fx-background-color: transparent; -fx-border-color: transparent;");
 
         // --- Recommendations (GRAF YAPISI BURADA KULLANILIYOR) ---
         Label recTitle = createTitle("BUNU OKUYANLAR ŞUNLARI DA OKUDU (Graf Önerisi)");
@@ -561,7 +656,7 @@ public class MainApp extends Application {
         } else {
             for (String recIsbn : recs) {
                 Book recommendedBook = db.getBookByIsbnMap(recIsbn);
-                if (recommendedBook != null) recBox.getChildren().add(createLabel("- " + recommendedBook.getTitle()));
+                if (recommendedBook != null) recBox.getChildren().add(createCopyableField("- " + recommendedBook.getTitle()));
             }
         }
 
@@ -588,6 +683,7 @@ public class MainApp extends Application {
                 book.setAvailable(false);
                 user.addReadIsbn(book.getIsbn());
                 db.getLibraryGraph().addCoRead(user.getReadIsbns());
+                db.updateTopBooks(); // Ödünç alma sonrası diziyi güncelle
                 msg = "Başarılı! Kitabı ödünç alan: " + user.getId();
             } else {
                 // Öncelikli Kuyruk mantığı burada devreye giriyor!
@@ -609,7 +705,79 @@ public class MainApp extends Application {
         buttonBox.setPadding(new Insets(10, 0, 0, 0));
         buttonBox.getChildren().addAll(borrowBtn, backBtn);
 
-        root.getChildren().addAll(title, infoBox, pathTitle, pathLabel, recTitle, recBox, msgLabel, buttonBox);
+        root.getChildren().addAll(title, infoBox, pathTitle, pathField, recTitle, recBox, msgLabel, buttonBox);
+    }
+
+    // ---------- Benchmark Ekranı ----------
+    private void showBenchmarkScreen() {
+        root.getChildren().clear();
+        root.setAlignment(Pos.TOP_CENTER);
+
+        Label title = createTitle("PERFORMANS KARŞILAŞTIRMASI");
+        Label desc = createLabel("Farklı veri yapılarının aynı işlemdeki performans farkını ölçer.");
+        desc.setStyle("-fx-text-fill: #6c7086; -fx-font-size: 13px;");
+
+        // Sonuç tablosu
+        TableView<PerformanceBenchmark.BenchmarkResult> table = new TableView<>();
+        table.setPrefHeight(320);
+        table.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e;");
+
+        TableColumn<PerformanceBenchmark.BenchmarkResult, String> testCol = new TableColumn<>("Test");
+        testCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTestName()));
+        testCol.setPrefWidth(110);
+
+        TableColumn<PerformanceBenchmark.BenchmarkResult, String> sizeCol = new TableColumn<>("Veri Boyutu");
+        sizeCol.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getDataSize())));
+        sizeCol.setPrefWidth(80);
+
+        TableColumn<PerformanceBenchmark.BenchmarkResult, String> s1Col = new TableColumn<>("Yapı 1");
+        s1Col.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStructure1()));
+        s1Col.setPrefWidth(155);
+
+        TableColumn<PerformanceBenchmark.BenchmarkResult, String> t1Col = new TableColumn<>("Süre 1 (ms)");
+        t1Col.setCellValueFactory(c -> new SimpleStringProperty(String.format("%.4f", c.getValue().getTime1Ms())));
+        t1Col.setPrefWidth(85);
+
+        TableColumn<PerformanceBenchmark.BenchmarkResult, String> s2Col = new TableColumn<>("Yapı 2");
+        s2Col.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStructure2()));
+        s2Col.setPrefWidth(145);
+
+        TableColumn<PerformanceBenchmark.BenchmarkResult, String> t2Col = new TableColumn<>("Süre 2 (ms)");
+        t2Col.setCellValueFactory(c -> new SimpleStringProperty(String.format("%.4f", c.getValue().getTime2Ms())));
+        t2Col.setPrefWidth(85);
+
+        TableColumn<PerformanceBenchmark.BenchmarkResult, String> winCol = new TableColumn<>("Kazanan");
+        winCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getWinner()));
+        winCol.setPrefWidth(120);
+
+        table.getColumns().addAll(testCol, sizeCol, s1Col, t1Col, s2Col, t2Col, winCol);
+
+        Label statusLabel = createLabel("Testi başlatmak için butona tıklayın.");
+
+        Button startBtn = createButton("Testi Başlat");
+        startBtn.setOnAction(event -> {
+            statusLabel.setText("Test çalışıyor, lütfen bekleyin...");
+            // JavaFX thread'ini kilitlememek için Platform.runLater kullanıyoruz
+            new Thread(() -> {
+                PerformanceBenchmark benchmark = new PerformanceBenchmark();
+                int[] sizes = {100, 1_000, 50_000};
+                java.util.List<PerformanceBenchmark.BenchmarkResult> results = benchmark.runAllBenchmarks(sizes);
+                javafx.application.Platform.runLater(() -> {
+                    table.setItems(FXCollections.observableArrayList(results));
+                    statusLabel.setText("Test tamamlandı! (" + results.size() + " karşılaştırma)");
+                    statusLabel.setStyle("-fx-text-fill: #a6e3a1;");
+                });
+            }).start();
+        });
+
+        Button backBtn = createButton("Geri");
+        backBtn.setOnAction(event -> goBack());
+
+        HBox buttonBox = new HBox(20);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.getChildren().addAll(startBtn, backBtn);
+
+        root.getChildren().addAll(title, desc, statusLabel, table, buttonBox);
     }
 
     public static void main(String[] args) {

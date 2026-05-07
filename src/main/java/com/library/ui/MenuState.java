@@ -7,5 +7,6 @@ public enum MenuState {
     SEARCH,
     BOOK_DETAILS,
     ADMIN_DASHBOARD,
-    ADMIN_BORROWS
+    ADMIN_BORROWS,
+    BENCHMARK
 }

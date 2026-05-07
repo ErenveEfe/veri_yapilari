@@ -18,6 +18,13 @@ public class LibraryDatabase {
     private BookBST searchTree; // Yeni Eklenen İkili Arama Ağacımız
     private LibraryGraph graph;
 
+    // DİZİ (ARRAY) VERİ YAPISI:
+    // Sabit boyutlu bir ilkel dizi kullanarak en popüler 10 kitabı tutuyoruz.
+    // ArrayList yerine Array kullanmamızın sebebi: boyut sabit ve önceden biliniyor,
+    // bu durumda Array daha az bellek tüketir ve indeks erişimi O(1) hızındadır.
+    private static final int TOP_N = 10;
+    private Book[] topBooksArray = new Book[TOP_N];
+
     public LibraryDatabase() {
         bookMap = new HashMap<>();
         userMap = new HashMap<>();
@@ -36,6 +43,9 @@ public class LibraryDatabase {
         
         sortBooks();
         categoryTree.addBook(book.getGenre(), book.getSubGenre(), book);
+        
+        // Sabit boyutlu dizi (Array) güncelleniyor
+        updateTopBooks();
     }
 
     public void addUser(User user) {
@@ -59,6 +69,22 @@ public class LibraryDatabase {
 
     private void sortBooks() {
         Collections.sort(sortedBooks, Comparator.comparing(Book::getTitle, String.CASE_INSENSITIVE_ORDER));
+    }
+
+    // DİZİ (ARRAY) GÜNCELLEME:
+    // En çok okunan kitapları sabit boyutlu diziye (Array) aktarıyoruz.
+    // Dizi boyutu sabittir (TOP_N=10), bu yüzden ArrayList'e gerek yoktur.
+    public void updateTopBooks() {
+        List<Book> all = new ArrayList<>(sortedBooks);
+        all.sort((a, b) -> Integer.compare(b.getBorrowCount(), a.getBorrowCount()));
+        for (int i = 0; i < TOP_N && i < all.size(); i++) {
+            topBooksArray[i] = all.get(i);
+        }
+    }
+
+    // Sabit boyutlu diziyi döndürür — O(1) erişim
+    public Book[] getTopBooksArray() {
+        return topBooksArray;
     }
 
     // İKİLİ ARAMA AĞACINDA (BST) ARAMA YAPIYORUZ

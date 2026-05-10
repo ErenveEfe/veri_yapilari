@@ -42,10 +42,7 @@ public class DataLoader {
                     String author = bookData[4].replaceAll("^\"|\"$", "").trim();
                     int borrowCount = Integer.parseInt(bookData[5].replaceAll("^\"|\"$", "").trim());
 
-                    // Generate a random shelf location for realism
-                    String location = "Shelf " + ((int) (Math.random() * 3) + 1);
-
-                    db.addBook(new Book(isbn, title, genre, subGenre, author, borrowCount, location));
+                    db.addBook(new Book(isbn, title, genre, subGenre, author, borrowCount));
                 }
             }
         } catch (IOException exception) {

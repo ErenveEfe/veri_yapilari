@@ -279,7 +279,7 @@ public class PerformanceBenchmark {
                         borrow = Integer.parseInt(parts[5].trim()); 
                     } catch(Exception e) {}
                     
-                    books.add(new Book(isbn, title, genre, sub, author, borrow, "Raf 1"));
+                    books.add(new Book(isbn, title, genre, sub, author, borrow));
                 }
             }
         } catch (Exception e) {

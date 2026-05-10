@@ -209,7 +209,7 @@ public class MainApp extends Application {
         root.getChildren().clear();
 
         Label title = createTitle("KULLANICI PANELİ");
-        Label welcome = createLabel("Hoş Geldin, " + user.getId() + " [" + user.getUserType() + "]");
+        Label welcome = createLabel("Hoş Geldin, " + user.getId());
 
         Button topBooksBtn = createButton("En Popüler 10 Kitap");
         topBooksBtn.setOnAction(event -> changeScreen(MenuState.TOP_BOOKS));
@@ -235,7 +235,7 @@ public class MainApp extends Application {
         root.getChildren().clear();
 
         Label title = createTitle("YÖNETİCİ PANELİ");
-        Label welcome = createLabel("Hoş Geldin, " + user.getId() + " [YÖNETİCİ]");
+        Label welcome = createLabel("Hoş Geldin, " + user.getId());
 
         Button viewBorrowsBtn = createButton("Ödünç Alanlar & Kuyruklar");
         viewBorrowsBtn.setOnAction(event -> changeScreen(MenuState.ADMIN_BORROWS));
@@ -304,9 +304,6 @@ public class MainApp extends Application {
         root.setAlignment(Pos.TOP_CENTER);
 
         Label title = createTitle("EN POPÜLER 10 KİTAP");
-        // DİZİ (ARRAY) yapısından okuyoruz — sabit boyutlu Book[10] dizisi
-        Label hint = createLabel("Not: Bu liste sabit boyutlu Dizi (Array) veri yapısından okunmaktadır.");
-        hint.setStyle("-fx-text-fill: #6c7086; -fx-font-size: 13px;");
 
         ListView<Book> listView = new ListView<>();
         listView.setPrefHeight(330);
@@ -370,7 +367,7 @@ public class MainApp extends Application {
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.getChildren().addAll(backBtn, viewDetailsBtn);
 
-        root.getChildren().addAll(title, hint, listView, buttonBox);
+        root.getChildren().addAll(title, listView, buttonBox);
     }
 
     private void showSearchScreen() {
@@ -378,10 +375,6 @@ public class MainApp extends Application {
         root.setAlignment(Pos.TOP_CENTER);
 
         Label title = createTitle("KİTAP ARAMA EKRANI");
-
-        // Hoca için eklendi: İkili Arama Ağacı'nı burada kullanıyoruz!
-        Label hint = createLabel("Not: İsimle arama normal arar. ISBN araması ise hocanın istediği gibi O(log n) hızında BST kullanır!");
-        hint.setStyle("-fx-text-fill: #6c7086; -fx-font-size: 13px;");
 
         HBox searchBox = new HBox(10);
         searchBox.setAlignment(Pos.CENTER);
@@ -572,7 +565,7 @@ public class MainApp extends Application {
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.getChildren().addAll(backBtn, viewDetailsBtn);
 
-        root.getChildren().addAll(title, hint, searchBox, noResultLabel, resultList, buttonBox);
+        root.getChildren().addAll(title, searchBox, noResultLabel, resultList, buttonBox);
     }
 
     // Detay sayfası (İşlem sonrası mesaj göstermek için statusMessage alıyor)
@@ -600,15 +593,10 @@ public class MainApp extends Application {
         statusField.setFont(Font.font("Arial", FontWeight.BOLD, 15));
         infoBox.getChildren().add(statusField);
 
-        // --- Location ---
-        Label pathTitle = createTitle("KONUM");
-        pathTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-
-        TextField pathField = createCopyableField("Kitap Rafı: " + book.getLocationInfo());
-        pathField.setStyle("-fx-text-fill: #f9e2af; -fx-background-color: transparent; -fx-border-color: transparent;");
+        // Lokasyon alanı kaldırıldı
 
         // --- Recommendations (GRAF YAPISI BURADA KULLANILIYOR) ---
-        Label recTitle = createTitle("BUNU OKUYANLAR ŞUNLARI DA OKUDU (Graf Önerisi)");
+        Label recTitle = createTitle("BUNU OKUYANLAR ŞUNLARI DA OKUDU");
         recTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
         VBox recBox = new VBox(5);
@@ -651,7 +639,7 @@ public class MainApp extends Application {
                 // Öncelikli Kuyruk mantığı burada devreye giriyor!
                 boolean added = book.getQueue().enqueue(user);
                 msg = added
-                    ? "Kitap rafta yok. Öncelikli Kuyruk (Priority Queue) bekleme listesine eklendiniz."
+                    ? "Kitap rafta yok. Öncelikli bekleme listesine eklendiniz."
                     : "Zaten bu kitap için sırada bekliyorsunuz.";
             }
             showBookDetails(msg);
@@ -667,7 +655,7 @@ public class MainApp extends Application {
         buttonBox.setPadding(new Insets(10, 0, 0, 0));
         buttonBox.getChildren().addAll(borrowBtn, backBtn);
 
-        root.getChildren().addAll(title, infoBox, pathTitle, pathField, recTitle, recBox, msgLabel, buttonBox);
+        root.getChildren().addAll(title, infoBox, recTitle, recBox, msgLabel, buttonBox);
     }
 
     public static void main(String[] args) {

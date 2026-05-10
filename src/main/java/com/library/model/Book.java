@@ -11,20 +11,18 @@ public class Book {
     private String subGenre;
     private String author;
     private int borrowCount;
-    private String locationInfo;
     private LinkedList<BorrowHistory> borrowHistory;
     private HashSet<String> uniqueReaders;
     private boolean available;
     private BorrowQueue queue;
 
-    public Book(String isbn, String title, String genre, String subGenre, String author, int borrowCount, String locationInfo) {
+    public Book(String isbn, String title, String genre, String subGenre, String author, int borrowCount) {
         this.isbn = isbn;
         this.title = title;
         this.genre = genre;
         this.subGenre = subGenre;
         this.author = author;
         this.borrowCount = borrowCount;
-        this.locationInfo = locationInfo;
         this.borrowHistory = new LinkedList<>();
         this.uniqueReaders = new HashSet<>();
         this.available = true;
@@ -48,9 +46,6 @@ public class Book {
 
     public int getBorrowCount() { return borrowCount; }
     public void setBorrowCount(int borrowCount) { this.borrowCount = borrowCount; }
-
-    public String getLocationInfo() { return locationInfo; }
-    public void setLocationInfo(String locationInfo) { this.locationInfo = locationInfo; }
 
     public LinkedList<BorrowHistory> getBorrowHistory() { return borrowHistory; }
     public void setBorrowHistory(LinkedList<BorrowHistory> borrowHistory) { this.borrowHistory = borrowHistory; }

@@ -69,7 +69,7 @@ public class MainApp extends Application {
 
         Scene scene = new Scene(mainLayout, 1100, 650);
 
-        primaryStage.setTitle("Kütüphane Yönetim Sistemi (Veri Yapıları Projesi)");
+        primaryStage.setTitle("Kütüphane Yönetim Sistemi");
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
         primaryStage.show();
@@ -96,7 +96,7 @@ public class MainApp extends Application {
     private Button createButton(String text) {
         Button btn = new Button(text);
         btn.setStyle(BTN_STYLE);
-        btn.setPrefWidth(200);
+        btn.setPrefWidth(260);
         btn.setPrefHeight(40);
         btn.setFont(Font.font("Arial", 14));
         return btn;
@@ -105,7 +105,7 @@ public class MainApp extends Application {
     private Button createDangerButton(String text) {
         Button btn = new Button(text);
         btn.setStyle(BTN_DANGER_STYLE);
-        btn.setPrefWidth(200);
+        btn.setPrefWidth(260);
         btn.setPrefHeight(40);
         btn.setFont(Font.font("Arial", 14));
         return btn;

@@ -12,9 +12,14 @@ import java.io.IOException;
 public class DataLoader {
 
     public static void initialize(LibraryDatabase db) {
-        db.addUser(new User("std01", "1234", UserType.STUDENT));
-        db.addUser(new User("aca01", "abcd", UserType.ACADEMICIAN));
-        db.addUser(new User("aca02", "abcd", UserType.ACADEMICIAN));
+        db.addUser(new User("std01", "123", UserType.STUDENT));
+        db.addUser(new User("std02", "123", UserType.STUDENT));
+        db.addUser(new User("std03", "123", UserType.STUDENT));
+        db.addUser(new User("std04", "123", UserType.STUDENT));
+        db.addUser(new User("std05", "123", UserType.STUDENT));
+        db.addUser(new User("std06", "123", UserType.STUDENT));
+        db.addUser(new User("aca01", "123", UserType.ACADEMICIAN));
+        db.addUser(new User("aca02", "123", UserType.ACADEMICIAN));
         db.addUser(new User("admin", "admin", UserType.ADMIN));
 
         String path = "library_dataset_unique.csv";

@@ -10,6 +10,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 /**
  * PERFORMANS KARŞILAŞTIRMA SINIFI
@@ -72,9 +74,11 @@ public class PerformanceBenchmark {
         List<BenchmarkResult> results = new ArrayList<>();
 
         for (int size : sizes) {
-            // --- Test verilerini üret ---
-            List<Book> testBooks = generateTestBooks(size);
-            String targetIsbn = testBooks.get(size - 1).getIsbn(); // Son elemanı arayacağız (en kötü durum)
+            // --- Test verilerini yükle ---
+            List<Book> testBooks = loadTestBooks(size);
+            int actualSize = testBooks.size();
+            if (actualSize == 0) continue; // Veri yoksa atla
+            String targetIsbn = testBooks.get(actualSize - 1).getIsbn(); // Son elemanı arayacağız (en kötü durum)
 
             // --- TEST 1: ISBN Arama — ArrayList vs BST ---
             results.add(benchmarkSearch(testBooks, targetIsbn, size));
@@ -251,22 +255,38 @@ public class PerformanceBenchmark {
     }
 
     /**
-     * Test için sahte kitap verileri üretir.
+     * Test için gerçek veri setinden belirtilen sayıda kitap yükler.
      * @param count Üretilecek kitap sayısı
      */
-    private List<Book> generateTestBooks(int count) {
+    private List<Book> loadTestBooks(int count) {
         List<Book> books = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            books.add(new Book(
-                "ISBN-" + String.format("%06d", i),
-                "Test Kitap " + i,
-                "Test Tür",
-                "Test Alt Tür",
-                "Test Yazar",
-                (int)(Math.random() * 1000),
-                "Shelf 1"
-            ));
+        String file = "library_benchmark_dataset.csv";
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line = br.readLine(); // Header atla
+            while ((line = br.readLine()) != null && books.size() < count) {
+                // Performans testi için karmaşık regex'e gerek yok, basit virgül ayrımı yeterlidir.
+                // Eğer kitap adında virgül varsa kayma olabilir ama testin doğruluğunu (hızını) etkilemez.
+                String[] parts = line.split(",");
+                if (parts.length >= 6) {
+                    String isbn = parts[0].trim();
+                    String title = parts[1].trim();
+                    String genre = parts[2].trim();
+                    String sub = parts[3].trim();
+                    String author = parts[4].trim();
+                    int borrow = 0;
+                    try { 
+                        // Sütun kaysa bile hata vermemesi için koruma
+                        borrow = Integer.parseInt(parts[5].trim()); 
+                    } catch(Exception e) {}
+                    
+                    books.add(new Book(isbn, title, genre, sub, author, borrow, "Raf 1"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        
+        // Eğer dosyada istenenden az veri varsa, size'ı test için mevcut boyuta çekmeliyiz.
         // StackOverflow hatasını önlemek için listeyi karıştırıyoruz (BST'nin tek tarafa uzamasını engeller)
         Collections.shuffle(books);
         return books;

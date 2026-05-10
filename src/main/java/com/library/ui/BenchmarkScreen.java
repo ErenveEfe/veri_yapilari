@@ -72,7 +72,7 @@ public class BenchmarkScreen {
             statusLabel.setText("Test çalışıyor, lütfen bekleyin...");
             new Thread(() -> {
                 PerformanceBenchmark benchmark = new PerformanceBenchmark();
-                int[] sizes = {100, 1_000, 50_000};
+                int[] sizes = {200_000};
                 List<PerformanceBenchmark.BenchmarkResult> results = benchmark.runAllBenchmarks(sizes);
                 Platform.runLater(() -> {
                     table.setItems(FXCollections.observableArrayList(results));

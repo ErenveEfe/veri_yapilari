@@ -46,11 +46,7 @@ public class MainApp extends Application {
     private static final String BG_COLOR = "-fx-background-color: #1e1e2e;";
     private static final String TEXT_COLOR = "-fx-text-fill: #cdd6f4;";
     private static final String BTN_STYLE = "-fx-background-color: #89b4fa; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;";
-    private static final String BTN_HOVER_STYLE = "-fx-background-color: #74c7ec; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;";
-    private static final String BTN_PRESSED_STYLE = "-fx-background-color: #585b70; -fx-text-fill: #cdd6f4; -fx-font-weight: bold; -fx-background-radius: 8;";
     private static final String BTN_DANGER_STYLE = "-fx-background-color: #f38ba8; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;";
-    private static final String BTN_DANGER_HOVER = "-fx-background-color: #eba0ac; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;";
-    private static final String BTN_DANGER_PRESSED = "-fx-background-color: #a6394f; -fx-text-fill: #cdd6f4; -fx-font-weight: bold; -fx-background-radius: 8;";
     private static final String INPUT_STYLE = "-fx-background-color: #313244; -fx-text-fill: #cdd6f4; -fx-background-radius: 5;";
 
     @Override
@@ -71,11 +67,11 @@ public class MainApp extends Application {
         javafx.scene.layout.StackPane.setAlignment(timeLabel, Pos.BOTTOM_RIGHT);
         javafx.scene.layout.StackPane.setMargin(timeLabel, new Insets(10));
 
-        Scene scene = new Scene(mainLayout, 800, 600);
+        Scene scene = new Scene(mainLayout, 950, 650);
 
         primaryStage.setTitle("Kütüphane Yönetim Sistemi (Veri Yapıları Projesi)");
         primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
+        primaryStage.setResizable(true);
         primaryStage.show();
 
         showLoginScreen();
@@ -103,30 +99,6 @@ public class MainApp extends Application {
         btn.setPrefWidth(200);
         btn.setPrefHeight(40);
         btn.setFont(Font.font("Arial", 14));
-
-        // Hover efekti: üzerine gelince renk değişimi + hafif büyüme
-        btn.setOnMouseEntered(e -> {
-            btn.setStyle(BTN_HOVER_STYLE);
-            btn.setScaleX(1.05);
-            btn.setScaleY(1.05);
-        });
-        btn.setOnMouseExited(e -> {
-            btn.setStyle(BTN_STYLE);
-            btn.setScaleX(1.0);
-            btn.setScaleY(1.0);
-        });
-        // Basılı tutunca efekti: daha koyu renk + hafif küçülme
-        btn.setOnMousePressed(e -> {
-            btn.setStyle(BTN_PRESSED_STYLE);
-            btn.setScaleX(0.97);
-            btn.setScaleY(0.97);
-        });
-        btn.setOnMouseReleased(e -> {
-            btn.setStyle(btn.isHover() ? BTN_HOVER_STYLE : BTN_STYLE);
-            btn.setScaleX(btn.isHover() ? 1.05 : 1.0);
-            btn.setScaleY(btn.isHover() ? 1.05 : 1.0);
-        });
-
         return btn;
     }
 
@@ -136,16 +108,6 @@ public class MainApp extends Application {
         btn.setPrefWidth(200);
         btn.setPrefHeight(40);
         btn.setFont(Font.font("Arial", 14));
-
-        btn.setOnMouseEntered(e -> { btn.setStyle(BTN_DANGER_HOVER); btn.setScaleX(1.05); btn.setScaleY(1.05); });
-        btn.setOnMouseExited(e -> { btn.setStyle(BTN_DANGER_STYLE); btn.setScaleX(1.0); btn.setScaleY(1.0); });
-        btn.setOnMousePressed(e -> { btn.setStyle(BTN_DANGER_PRESSED); btn.setScaleX(0.97); btn.setScaleY(0.97); });
-        btn.setOnMouseReleased(e -> {
-            btn.setStyle(btn.isHover() ? BTN_DANGER_HOVER : BTN_DANGER_STYLE);
-            btn.setScaleX(btn.isHover() ? 1.05 : 1.0);
-            btn.setScaleY(btn.isHover() ? 1.05 : 1.0);
-        });
-
         return btn;
     }
 
@@ -190,7 +152,7 @@ public class MainApp extends Application {
             case BOOK_DETAILS: showBookDetails(null); break;
             case ADMIN_DASHBOARD: showAdminDashboard(); break;
             case ADMIN_BORROWS: showAdminBorrows(); break;
-            case BENCHMARK: showBenchmarkScreen(); break;
+            case BENCHMARK: BenchmarkScreen.render(root, this::goBack); break;
         }
 
         long endTime = System.nanoTime();
@@ -706,78 +668,6 @@ public class MainApp extends Application {
         buttonBox.getChildren().addAll(borrowBtn, backBtn);
 
         root.getChildren().addAll(title, infoBox, pathTitle, pathField, recTitle, recBox, msgLabel, buttonBox);
-    }
-
-    // ---------- Benchmark Ekranı ----------
-    private void showBenchmarkScreen() {
-        root.getChildren().clear();
-        root.setAlignment(Pos.TOP_CENTER);
-
-        Label title = createTitle("PERFORMANS KARŞILAŞTIRMASI");
-        Label desc = createLabel("Farklı veri yapılarının aynı işlemdeki performans farkını ölçer.");
-        desc.setStyle("-fx-text-fill: #6c7086; -fx-font-size: 13px;");
-
-        // Sonuç tablosu
-        TableView<PerformanceBenchmark.BenchmarkResult> table = new TableView<>();
-        table.setPrefHeight(320);
-        table.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e;");
-
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> testCol = new TableColumn<>("Test");
-        testCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTestName()));
-        testCol.setPrefWidth(110);
-
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> sizeCol = new TableColumn<>("Veri Boyutu");
-        sizeCol.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getDataSize())));
-        sizeCol.setPrefWidth(80);
-
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> s1Col = new TableColumn<>("Yapı 1");
-        s1Col.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStructure1()));
-        s1Col.setPrefWidth(155);
-
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> t1Col = new TableColumn<>("Süre 1 (ms)");
-        t1Col.setCellValueFactory(c -> new SimpleStringProperty(String.format("%.4f", c.getValue().getTime1Ms())));
-        t1Col.setPrefWidth(85);
-
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> s2Col = new TableColumn<>("Yapı 2");
-        s2Col.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStructure2()));
-        s2Col.setPrefWidth(145);
-
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> t2Col = new TableColumn<>("Süre 2 (ms)");
-        t2Col.setCellValueFactory(c -> new SimpleStringProperty(String.format("%.4f", c.getValue().getTime2Ms())));
-        t2Col.setPrefWidth(85);
-
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> winCol = new TableColumn<>("Kazanan");
-        winCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getWinner()));
-        winCol.setPrefWidth(120);
-
-        table.getColumns().addAll(testCol, sizeCol, s1Col, t1Col, s2Col, t2Col, winCol);
-
-        Label statusLabel = createLabel("Testi başlatmak için butona tıklayın.");
-
-        Button startBtn = createButton("Testi Başlat");
-        startBtn.setOnAction(event -> {
-            statusLabel.setText("Test çalışıyor, lütfen bekleyin...");
-            // JavaFX thread'ini kilitlememek için Platform.runLater kullanıyoruz
-            new Thread(() -> {
-                PerformanceBenchmark benchmark = new PerformanceBenchmark();
-                int[] sizes = {100, 1_000, 50_000};
-                java.util.List<PerformanceBenchmark.BenchmarkResult> results = benchmark.runAllBenchmarks(sizes);
-                javafx.application.Platform.runLater(() -> {
-                    table.setItems(FXCollections.observableArrayList(results));
-                    statusLabel.setText("Test tamamlandı! (" + results.size() + " karşılaştırma)");
-                    statusLabel.setStyle("-fx-text-fill: #a6e3a1;");
-                });
-            }).start();
-        });
-
-        Button backBtn = createButton("Geri");
-        backBtn.setOnAction(event -> goBack());
-
-        HBox buttonBox = new HBox(20);
-        buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.getChildren().addAll(startBtn, backBtn);
-
-        root.getChildren().addAll(title, desc, statusLabel, table, buttonBox);
     }
 
     public static void main(String[] args) {

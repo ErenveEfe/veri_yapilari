@@ -267,6 +267,8 @@ public class PerformanceBenchmark {
                 "Shelf 1"
             ));
         }
+        // StackOverflow hatasını önlemek için listeyi karıştırıyoruz (BST'nin tek tarafa uzamasını engeller)
+        Collections.shuffle(books);
         return books;
     }
 }

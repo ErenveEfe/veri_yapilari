@@ -11,8 +11,4 @@ public class BorrowHistory {
         this.borrowDate = borrowDate;
     }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
-    public LocalDate getBorrowDate() { return borrowDate; }
-    public void setBorrowDate(LocalDate borrowDate) { this.borrowDate = borrowDate; }
 }

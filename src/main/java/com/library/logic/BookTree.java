@@ -11,10 +11,6 @@ public class BookTree {
         this.root = new TreeNode("Library", null);
     }
 
-    public TreeNode getRoot() {
-        return root;
-    }
-
     public void addBook(String genre, String subGenre, Book book) {
         TreeNode genreNode = findOrAddChild(root, genre);
         TreeNode subGenreNode = findOrAddChild(genreNode, subGenre);

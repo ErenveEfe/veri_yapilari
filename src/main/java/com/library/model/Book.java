@@ -30,25 +30,19 @@ public class Book {
     }
 
     public String getIsbn() { return isbn; }
-    public void setIsbn(String isbn) { this.isbn = isbn; }
 
     public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
 
     public String getGenre() { return genre; }
-    public void setGenre(String genre) { this.genre = genre; }
 
     public String getSubGenre() { return subGenre; }
-    public void setSubGenre(String subGenre) { this.subGenre = subGenre; }
 
     public String getAuthor() { return author; }
-    public void setAuthor(String author) { this.author = author; }
 
     public int getBorrowCount() { return borrowCount; }
     public void setBorrowCount(int borrowCount) { this.borrowCount = borrowCount; }
 
     public LinkedList<BorrowHistory> getBorrowHistory() { return borrowHistory; }
-    public void setBorrowHistory(LinkedList<BorrowHistory> borrowHistory) { this.borrowHistory = borrowHistory; }
 
     public HashSet<String> getUniqueReaders() { return uniqueReaders; }
     public boolean isAvailable() { return available; }

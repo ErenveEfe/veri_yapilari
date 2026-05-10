@@ -2,7 +2,6 @@ package com.library.ui;
 
 import com.library.logic.LibraryDatabase;
 import com.library.logic.NavigationManager;
-import com.library.logic.PerformanceBenchmark;
 import com.library.model.Book;
 import com.library.model.BorrowHistory;
 import com.library.model.User;
@@ -17,12 +16,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -593,7 +587,6 @@ public class MainApp extends Application {
         statusField.setFont(Font.font("Arial", FontWeight.BOLD, 15));
         infoBox.getChildren().add(statusField);
 
-        // Lokasyon alanı kaldırıldı
 
         // --- Recommendations (GRAF YAPISI BURADA KULLANILIYOR) ---
         Label recTitle = createTitle("BUNU OKUYANLAR ŞUNLARI DA OKUDU");

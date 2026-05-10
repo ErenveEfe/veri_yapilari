@@ -20,14 +20,4 @@ public class NavigationManager {
         return null;
     }
 
-    public String peek() {
-        if (!sceneStack.isEmpty()) {
-            return sceneStack.peek();
-        }
-        return null;
-    }
-
-    public boolean isEmpty() {
-        return sceneStack.isEmpty();
-    }
 }

@@ -35,31 +35,31 @@ public class BenchmarkScreen {
 
         TableColumn<PerformanceBenchmark.BenchmarkResult, String> testCol = new TableColumn<>("Test");
         testCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTestName()));
-        testCol.setPrefWidth(110);
+        testCol.setPrefWidth(125);
 
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> sizeCol = new TableColumn<>("Veri Boyutu");
+        TableColumn<PerformanceBenchmark.BenchmarkResult, String> sizeCol = new TableColumn<>("Boyut");
         sizeCol.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getDataSize())));
-        sizeCol.setPrefWidth(80);
+        sizeCol.setPrefWidth(75);
 
         TableColumn<PerformanceBenchmark.BenchmarkResult, String> s1Col = new TableColumn<>("Yapı 1");
         s1Col.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStructure1()));
-        s1Col.setPrefWidth(155);
+        s1Col.setPrefWidth(215);
 
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> t1Col = new TableColumn<>("Süre 1 (ms)");
+        TableColumn<PerformanceBenchmark.BenchmarkResult, String> t1Col = new TableColumn<>("Süre 1(ms)");
         t1Col.setCellValueFactory(c -> new SimpleStringProperty(String.format("%.4f", c.getValue().getTime1Ms())));
         t1Col.setPrefWidth(85);
 
         TableColumn<PerformanceBenchmark.BenchmarkResult, String> s2Col = new TableColumn<>("Yapı 2");
         s2Col.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getStructure2()));
-        s2Col.setPrefWidth(145);
+        s2Col.setPrefWidth(185);
 
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> t2Col = new TableColumn<>("Süre 2 (ms)");
+        TableColumn<PerformanceBenchmark.BenchmarkResult, String> t2Col = new TableColumn<>("Süre 2(ms)");
         t2Col.setCellValueFactory(c -> new SimpleStringProperty(String.format("%.4f", c.getValue().getTime2Ms())));
         t2Col.setPrefWidth(85);
 
         TableColumn<PerformanceBenchmark.BenchmarkResult, String> winCol = new TableColumn<>("Kazanan");
         winCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getWinner()));
-        winCol.setPrefWidth(120);
+        winCol.setPrefWidth(230);
 
         table.getColumns().addAll(testCol, sizeCol, s1Col, t1Col, s2Col, t2Col, winCol);
 

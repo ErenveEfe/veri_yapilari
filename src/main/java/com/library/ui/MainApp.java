@@ -67,7 +67,7 @@ public class MainApp extends Application {
         javafx.scene.layout.StackPane.setAlignment(timeLabel, Pos.BOTTOM_RIGHT);
         javafx.scene.layout.StackPane.setMargin(timeLabel, new Insets(10));
 
-        Scene scene = new Scene(mainLayout, 950, 650);
+        Scene scene = new Scene(mainLayout, 1100, 650);
 
         primaryStage.setTitle("Kütüphane Yönetim Sistemi (Veri Yapıları Projesi)");
         primaryStage.setScene(scene);

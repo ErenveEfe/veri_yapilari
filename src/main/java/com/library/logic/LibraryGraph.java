@@ -5,19 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// Graf (Graph) Veri Yapısı:
-// Burada kullanıcıların beraber okudukları kitapları birbiriyle ilişkilendirerek
-// bir Kitap Öneri (Recommendation) ağı kuruyoruz.
+// kitaplar arası okuma ilişkisini graf yapısıyla tutuyor
 public class LibraryGraph {
-    
-    // Hangi kitap hangi kitapla kaç kere beraber okunmuş onu tutan Ağırlıklı Graf (Weighted Graph)
+
     private Map<String, Map<String, Integer>> graph;
 
     public LibraryGraph() {
         graph = new HashMap<>();
     }
 
-    // İki kitap beraber okunduysa, aralarındaki bağı (kenarı/edge) güçlendirir
+    // aynı kişinin okuduğu kitapları birbirne bağlar
     public void addCoRead(List<String> readList) {
         for (int i = 0; i < readList.size(); i++) {
             for (int j = i + 1; j < readList.size(); j++) {
@@ -35,14 +32,13 @@ public class LibraryGraph {
         }
     }
 
-    // Bir kitaba en çok benzeyen (beraber okunan) limit sayıda kitabı getirir
+    // bu kitabı okuyanların okuduğu diğer kitapları önerir
     public List<String> getRecommendations(String isbn, int limit) {
         if (!graph.containsKey(isbn))
             return new ArrayList<>();
 
         Map<String, Integer> edges = graph.get(isbn);
-        
-        // Graf kenarlarını (edge) ağırlıklarına göre büyükten küçüğe sıralıyoruz
+
         List<Map.Entry<String, Integer>> list = new ArrayList<>(edges.entrySet());
         list.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
 

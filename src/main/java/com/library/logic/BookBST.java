@@ -2,11 +2,9 @@ package com.library.logic;
 
 import com.library.model.Book;
 
-// İkili Arama Ağacı (Binary Search Tree - BST) Veri Yapısı
-// Kitapları ISBN numaralarına göre sıralı bir ağaç yapısında tutar.
+// kitapları isbn numaralarına göre ağaçta sıralı tutuyoruz
 public class BookBST {
 
-    // Ağacın her bir düğümü
     private class Node {
         Book book;
         Node left;
@@ -25,12 +23,12 @@ public class BookBST {
         this.root = null;
     }
 
-    // Ağaca yeni kitap ekler
+    // yeni kitabı ağaca ekler
     public void insert(Book book) {
         root = insertRec(root, book);
     }
 
-    // Öz yinelemeli (recursive) olarak doğru yeri bulup ekler
+    // ağaçta dolaşarak kitabın eklenceği boş yeri buluyor
     private Node insertRec(Node root, Book book) {
         // Ağaç boşsa veya en uca geldiysek yeni düğümü oluşturur
         if (root == null) {
@@ -48,13 +46,13 @@ public class BookBST {
         return root;
     }
 
-    // ISBN'e göre kitabı ağaçta arar
+    // girilen isbne göre ağaçta arama yapar
     public Book search(String isbn) {
         Node result = searchRec(root, isbn);
         if (result != null) {
             return result.book;
         }
-        return null; // Bulunamazsa
+        return null;
     }
 
     private Node searchRec(Node root, String isbn) {

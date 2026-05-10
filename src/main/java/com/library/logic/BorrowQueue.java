@@ -8,45 +8,42 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+// kitap bekleyenleri önceliğe göre sıraya dizer
 public class BorrowQueue {
-    // Öncelikli Kuyruk (Priority Queue) ve arka planda Heap yapısı kullanıyoruz
     private PriorityQueue<User> queue;
 
     public BorrowQueue() {
-        // Akademisyenlerin önceliği var. Akademisyen ise başa, değilse sona atan bir kural yazdık.
-        // Bu Comparator, PriorityQueue'nun Heap (Ağaç tabanlı öncelik) mantığıyla sıralama yapmasını sağlar.
+
         Comparator<User> priorityComparator = new Comparator<User>() {
             @Override
             public int compare(User user1, User user2) {
-                // Eğer 1. kullanıcı akademisyen, 2. öğrenci ise 1. öne geçer (-1)
+
                 if (user1.getUserType() == UserType.ACADEMICIAN && user2.getUserType() != UserType.ACADEMICIAN) {
-                    return -1; 
-                } 
-                // Eğer 2. kullanıcı akademisyen, 1. öğrenci ise 2. öne geçer (1)
-                else if (user1.getUserType() != UserType.ACADEMICIAN && user2.getUserType() == UserType.ACADEMICIAN) {
-                    return 1;  
+                    return -1;
+                } else if (user1.getUserType() != UserType.ACADEMICIAN && user2.getUserType() == UserType.ACADEMICIAN) {
+                    return 1;
                 }
-                return 0; // İkisi de aynıysa öncelik eşit
+                return 0;
             }
         };
-        
+
         queue = new PriorityQueue<>(priorityComparator);
     }
 
+    // yeni kişiyi bekleme sırasına alır
     public boolean enqueue(User user) {
-        // Kuyrukta zaten var mı diye kontrol edelim
         for (User queuedUser : queue) {
             if (queuedUser.getId().equals(user.getId())) {
                 return false;
             }
         }
-        
+
         queue.offer(user);
         return true;
     }
 
+    // sırası gelen en öncelikli kişiyi kuyruktan çıkartır
     public User dequeue() {
-        // En yüksek öncelikli olanı (Heap'in tepesindekini) çıkartıp verir (O(log n))
         return queue.poll();
     }
 
@@ -54,8 +51,8 @@ public class BorrowQueue {
         return queue.isEmpty();
     }
 
+    // listeyi arayüzde basmak için arraye çevirir
     public List<User> getQueueList() {
-        // Arayüzde göstermek için listeye çevirip döndürüyoruz
         List<User> list = new ArrayList<>();
         PriorityQueue<User> copy = new PriorityQueue<>(queue);
         while (!copy.isEmpty()) {

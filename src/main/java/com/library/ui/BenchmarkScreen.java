@@ -57,11 +57,7 @@ public class BenchmarkScreen {
         t2Col.setCellValueFactory(c -> new SimpleStringProperty(String.format("%.4f", c.getValue().getTime2Ms())));
         t2Col.setPrefWidth(85);
 
-        TableColumn<PerformanceBenchmark.BenchmarkResult, String> winCol = new TableColumn<>("Kazanan");
-        winCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getWinner()));
-        winCol.setPrefWidth(230);
-
-        table.getColumns().addAll(testCol, sizeCol, s1Col, t1Col, s2Col, t2Col, winCol);
+        table.getColumns().addAll(testCol, sizeCol, s1Col, t1Col, s2Col, t2Col);
 
         Label statusLabel = new Label("Testi başlatmak için butona tıklayın.");
         statusLabel.setFont(Font.font("Arial", 16));

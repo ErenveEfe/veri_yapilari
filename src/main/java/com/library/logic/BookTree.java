@@ -4,6 +4,7 @@ import com.library.model.Book;
 import java.util.ArrayList;
 import java.util.List;
 
+// kategorileri ve alt türleri hiyerarşik olarak tutuyor
 public class BookTree {
     private TreeNode root;
 
@@ -11,6 +12,7 @@ public class BookTree {
         this.root = new TreeNode("Library", null);
     }
 
+    // kitabı uygun kategori ve alt kategori altına yerleştirir
     public void addBook(String genre, String subGenre, Book book) {
         TreeNode genreNode = findOrAddChild(root, genre);
         TreeNode subGenreNode = findOrAddChild(genreNode, subGenre);
@@ -18,6 +20,7 @@ public class BookTree {
         subGenreNode.addChild(bookNode);
     }
 
+    // ağaçta ilgili düğümü bulur yoksa yeni oluşturup ekler
     private TreeNode findOrAddChild(TreeNode parent, String value) {
         for (TreeNode child : parent.getChildren()) {
             if (child.getValue().equals(value)) {
@@ -29,6 +32,7 @@ public class BookTree {
         return newNode;
     }
 
+    // istenilen ana kategoriye ait tüm kitapalrı getirir
     public List<Book> getBooksByGenre(String genre, String subGenre) {
         List<Book> list = new ArrayList<>();
         for (TreeNode genreNode : root.getChildren()) {
@@ -48,6 +52,7 @@ public class BookTree {
         return list;
     }
 
+    // ağaçtaki ana kategorilerin listesini döndürür
     public List<String> getGenres() {
         List<String> list = new ArrayList<>();
         for (TreeNode genreNode : root.getChildren()) {
@@ -56,6 +61,7 @@ public class BookTree {
         return list;
     }
 
+    // seçilen kategoriye ait alt türleri listeler
     public List<String> getSubGenres(String genre) {
         List<String> list = new ArrayList<>();
         list.add("Hepsi");

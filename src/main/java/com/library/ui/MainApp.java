@@ -137,6 +137,7 @@ public class MainApp extends Application {
         
         root.getChildren().clear();
         root.setAlignment(Pos.CENTER);
+        root.setSpacing(20); // Varsayılan boşluk
 
         switch (state) {
             case LOGIN:       showLoginScreen();  break;
@@ -263,12 +264,19 @@ public class MainApp extends Application {
         listView.setPrefHeight(380);
         listView.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e; -fx-text-fill: #cdd6f4;");
         
-        // Tüm kitapları gezip kuyrukta bekleyen var mı diye bakıyoruz
+        // Tüm kitapları gezip şu an aktif olarak ödünç alınmış VEYA kuyrukta bekleyeni olanları listeliyoruz
         for (Book bookItem : db.getAllBooks()) {
-            if (!bookItem.getUniqueReaders().isEmpty() || !bookItem.getQueue().isEmpty()) {
+            if (!bookItem.isAvailable() || !bookItem.getQueue().isEmpty()) {
                 StringBuilder builder = new StringBuilder();
                 builder.append("Kitap: ").append(bookItem.getTitle()).append("\n");
-                builder.append("  Okuyanlar: ").append(bookItem.getUniqueReaders().toString()).append("\n");
+                
+                builder.append("  Şu Anki Okuyucu: ");
+                if (!bookItem.isAvailable() && !bookItem.getBorrowHistory().isEmpty()) {
+                    builder.append(bookItem.getBorrowHistory().getLast().getUserId()).append("\n");
+                } else {
+                    builder.append("Yok\n");
+                }
+                
                 builder.append("  Bekleme Kuyruğu (Priority Queue): ");
                 if (bookItem.getQueue().isEmpty()) {
                     builder.append("Yok");
@@ -566,6 +574,7 @@ public class MainApp extends Application {
     private void showBookDetails(String statusMessage) {
         root.getChildren().clear();
         root.setAlignment(Pos.TOP_LEFT);
+        root.setSpacing(10); // Bu sayfaya sığması için boşluğu daraltıyoruz
 
         Label title = createTitle("KİTAP DETAYLARI");
 
@@ -600,6 +609,37 @@ public class MainApp extends Application {
             for (String recIsbn : recs) {
                 Book recommendedBook = db.getBookByIsbnMap(recIsbn);
                 if (recommendedBook != null) recBox.getChildren().add(createCopyableField("- " + recommendedBook.getTitle()));
+            }
+        }
+
+        // --- Borrow History (LINKED LIST YAPISI BURADA KULLANILIYOR) ---
+        Label historyTitle = createTitle("ÖDÜNÇ ALMA GEÇMİŞİ (Bağlı Liste)");
+        historyTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+        
+        ListView<String> historyList = new ListView<>();
+        historyList.setPrefHeight(80);
+        historyList.setMinHeight(60); // JavaFX'in listeyi 0 piksele ezmesini engeller
+        historyList.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e;");
+        // Hücrelerin rengini ListView için özel ayarlamalıyız
+        historyList.setCellFactory(listProp -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    setText(item);
+                    setStyle("-fx-text-fill: #cdd6f4; -fx-background-color: transparent; -fx-font-size: 14px;");
+                }
+            }
+        });
+        
+        if (book.getBorrowHistory().isEmpty()) {
+            historyList.getItems().add("Bu kitap henüz ödünç alınmamış.");
+        } else {
+            for (BorrowHistory bh : book.getBorrowHistory()) {
+                historyList.getItems().add(bh.getBorrowDate() + " - Alan Kullanıcı: " + bh.getUserId());
             }
         }
 
@@ -640,15 +680,49 @@ public class MainApp extends Application {
             timeLabel.setText(String.format("İşlem süresi: %.2f ms", (endTime - startTime) / 1_000_000.0));
         });
 
+        Button returnBtn = createButton("Kitabı İade Et");
+        returnBtn.setOnAction(event -> {
+            long startTime = System.nanoTime();
+            String msg;
+            if (book.getQueue().isEmpty()) {
+                book.setAvailable(true);
+                msg = "Başarılı! Kitap rafa geri konuldu.";
+            } else {
+                // Öncelikli kuyruktan sıradaki kişiyi al (Dequeue İşlemi)
+                User nextUser = book.getQueue().dequeue();
+                boolean isNew = book.getUniqueReaders().add(nextUser.getId());
+                if (isNew) {
+                    book.setBorrowCount(book.getBorrowCount() + 1);
+                }
+                book.getBorrowHistory().add(new BorrowHistory(nextUser.getId(), LocalDate.now()));
+                nextUser.addReadIsbn(book.getIsbn());
+                db.getLibraryGraph().addCoRead(nextUser.getReadIsbns());
+                db.updateTopBooks();
+                msg = "Başarılı! Kitap iade edildi ve sıradaki kullanıcıya (" + nextUser.getId() + ") devredildi.";
+            }
+            showBookDetails(msg);
+            long endTime = System.nanoTime();
+            timeLabel.setText(String.format("İşlem süresi: %.2f ms", (endTime - startTime) / 1_000_000.0));
+        });
+
         Button backBtn = createButton("Geri");
         backBtn.setOnAction(event -> goBack());
+
+        boolean isAdmin = user.getUserType() == com.library.model.UserType.ADMIN;
+        boolean isCurrentBorrower = !book.isAvailable() && !book.getBorrowHistory().isEmpty() 
+                                    && book.getBorrowHistory().getLast().getUserId().equals(user.getId());
 
         HBox buttonBox = new HBox(20);
         buttonBox.setAlignment(Pos.CENTER_LEFT);
         buttonBox.setPadding(new Insets(10, 0, 0, 0));
-        buttonBox.getChildren().addAll(borrowBtn, backBtn);
+        
+        if (isCurrentBorrower || (isAdmin && !book.isAvailable())) {
+            buttonBox.getChildren().addAll(returnBtn, backBtn);
+        } else {
+            buttonBox.getChildren().addAll(borrowBtn, backBtn);
+        }
 
-        root.getChildren().addAll(title, infoBox, recTitle, recBox, msgLabel, buttonBox);
+        root.getChildren().addAll(title, infoBox, historyTitle, historyList, recTitle, recBox, msgLabel, buttonBox);
     }
 
     public static void main(String[] args) {

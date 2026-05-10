@@ -53,7 +53,8 @@ public class MainApp extends Application {
         root.setStyle(BG_COLOR);
 
         timeLabel = new Label("Hazır");
-        timeLabel.setStyle("-fx-text-fill: #a6adc8; -fx-background-color: #11111b; -fx-padding: 5px; -fx-background-radius: 5px;");
+        timeLabel.setStyle(
+                "-fx-text-fill: #a6adc8; -fx-background-color: #11111b; -fx-padding: 5px; -fx-background-radius: 5px;");
         timeLabel.setFont(Font.font("Consolas", FontWeight.BOLD, 12));
 
         javafx.scene.layout.StackPane mainLayout = new javafx.scene.layout.StackPane(root, timeLabel);
@@ -61,7 +62,7 @@ public class MainApp extends Application {
         javafx.scene.layout.StackPane.setAlignment(timeLabel, Pos.BOTTOM_RIGHT);
         javafx.scene.layout.StackPane.setMargin(timeLabel, new Insets(10));
 
-        Scene scene = new Scene(mainLayout, 1100, 650);
+        Scene scene = new Scene(mainLayout, 900, 650);
 
         primaryStage.setTitle("Kütüphane Yönetim Sistemi");
         primaryStage.setScene(scene);
@@ -70,8 +71,6 @@ public class MainApp extends Application {
 
         showLoginScreen();
     }
-
-    // ---------- UI Helpers ----------
 
     private Label createTitle(String text) {
         Label lbl = new Label(text);
@@ -105,19 +104,17 @@ public class MainApp extends Application {
         return btn;
     }
 
-    // Kopyalanabilir metin alanı — Label yerine kullanılır, düzenlenemez ama seçilebilir
+    // metinlerin seçilebilmesi için oluşturuldu.
     private TextField createCopyableField(String text) {
         TextField field = new TextField(text);
         field.setEditable(false);
-        field.setStyle(INPUT_STYLE + " -fx-border-color: transparent; -fx-background-color: transparent; -fx-text-fill: #cdd6f4;");
+        field.setStyle(INPUT_STYLE
+                + " -fx-border-color: transparent; -fx-background-color: transparent; -fx-text-fill: #cdd6f4;");
         field.setFont(Font.font("Arial", 15));
         field.setPrefWidth(550);
         return field;
     }
 
-    // ---------- Navigation ----------
-
-    // BUG-001 FIX: push the CURRENT state before transitioning
     private void changeScreen(MenuState newState) {
         navigator.push(currentState.name());
         currentState = newState;
@@ -134,29 +131,44 @@ public class MainApp extends Application {
 
     private void renderScreen(MenuState state) {
         long startTime = System.nanoTime();
-        
+
         root.getChildren().clear();
         root.setAlignment(Pos.CENTER);
-        root.setSpacing(20); // Varsayılan boşluk
+        root.setSpacing(20);
 
         switch (state) {
-            case LOGIN:       showLoginScreen();  break;
-            case DASHBOARD:   showDashboard();    break;
-            case TOP_BOOKS:   showTopBooks();     break;
-            case SEARCH:      showSearchScreen(); break;
-            case BOOK_DETAILS: showBookDetails(null); break;
-            case ADMIN_DASHBOARD: showAdminDashboard(); break;
-            case ADMIN_BORROWS: showAdminBorrows(); break;
-            case BENCHMARK: BenchmarkScreen.render(root, this::goBack); break;
+            case LOGIN:
+                showLoginScreen();
+                break;
+            case DASHBOARD:
+                showDashboard();
+                break;
+            case TOP_BOOKS:
+                showTopBooks();
+                break;
+            case SEARCH:
+                showSearchScreen();
+                break;
+            case BOOK_DETAILS:
+                showBookDetails(null);
+                break;
+            case ADMIN_DASHBOARD:
+                showAdminDashboard();
+                break;
+            case ADMIN_BORROWS:
+                showAdminBorrows();
+                break;
+            case BENCHMARK:
+                BenchmarkScreen.render(root, this::goBack);
+                break;
         }
 
         long endTime = System.nanoTime();
         double ms = (endTime - startTime) / 1_000_000.0;
-        // Hocaya hızı göstermek için eklendi:
+
+        // sağ alttaki label a işlem süresini yazar.
         timeLabel.setText(String.format("İşlem süresi: %.2f ms", ms));
     }
-
-    // ---------- Screens ----------
 
     private void showLoginScreen() {
         root.getChildren().clear();
@@ -182,6 +194,7 @@ public class MainApp extends Application {
         loginBtn.setOnAction(event -> {
             long startTime = System.nanoTime();
             User tempUser = db.getUser(idField.getText().trim());
+
             // Şifre kontrolü yapıyoruz
             if (tempUser != null && tempUser.getPassword().equals(passField.getText().trim())) {
                 user = tempUser;
@@ -191,7 +204,7 @@ public class MainApp extends Application {
                     changeScreen(MenuState.DASHBOARD);
                 }
             } else {
-                errorLabel.setText("Hatalı Kullanıcı Adı veya Şifre!");
+                errorLabel.setText("Hatalı kullanıcı adı veya şifre");
                 long endTime = System.nanoTime();
                 timeLabel.setText(String.format("İşlem süresi: %.2f ms", (endTime - startTime) / 1_000_000.0));
             }
@@ -217,7 +230,6 @@ public class MainApp extends Application {
 
         Button logoutBtn = createDangerButton("Çıkış Yap");
         logoutBtn.setOnAction(event -> {
-            // BUG-009 FIX: clear user on logout
             user = null;
             book = null;
             showLoginScreen();
@@ -262,29 +274,33 @@ public class MainApp extends Application {
 
         ListView<String> listView = new ListView<>();
         listView.setPrefHeight(380);
-        listView.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e; -fx-text-fill: #cdd6f4;");
-        
-        // Tüm kitapları gezip şu an aktif olarak ödünç alınmış VEYA kuyrukta bekleyeni olanları listeliyoruz
+        listView.setStyle(
+                "-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e; -fx-text-fill: #cdd6f4;");
+
+        // Tüm kitapları gezip şu an aktif olarak ödünç alınmış VEYA kuyrukta bekleyeni
+        // olanları listeliyoruz
         for (Book bookItem : db.getAllBooks()) {
             if (!bookItem.isAvailable() || !bookItem.getQueue().isEmpty()) {
                 StringBuilder builder = new StringBuilder();
                 builder.append("Kitap: ").append(bookItem.getTitle()).append("\n");
-                
+
                 builder.append("  Şu Anki Okuyucu: ");
                 if (!bookItem.isAvailable() && !bookItem.getBorrowHistory().isEmpty()) {
                     builder.append(bookItem.getBorrowHistory().getLast().getUserId()).append("\n");
                 } else {
                     builder.append("Yok\n");
                 }
-                
+
                 builder.append("  Bekleme Kuyruğu (Priority Queue): ");
                 if (bookItem.getQueue().isEmpty()) {
                     builder.append("Yok");
                 } else {
                     List<User> queueList = bookItem.getQueue().getQueueList();
-                    for (int i=0; i<queueList.size(); i++) {
-                        builder.append(queueList.get(i).getId()).append(" (").append(queueList.get(i).getUserType()).append(")");
-                        if (i < queueList.size() - 1) builder.append(", ");
+                    for (int i = 0; i < queueList.size(); i++) {
+                        builder.append(queueList.get(i).getId()).append(" (").append(queueList.get(i).getUserType())
+                                .append(")");
+                        if (i < queueList.size() - 1)
+                            builder.append(", ");
                     }
                 }
                 listView.getItems().add(builder.toString());
@@ -331,6 +347,7 @@ public class MainApp extends Application {
                     }
                 });
             }
+
             @Override
             protected void updateItem(Book book, boolean empty) {
                 super.updateItem(book, empty);
@@ -338,7 +355,8 @@ public class MainApp extends Application {
                     setText(null);
                     setStyle("-fx-background-color: transparent;");
                 } else {
-                    setText((getIndex() + 1) + ". " + book.getTitle() + "   [" + book.getBorrowCount() + " kez okunmuş]");
+                    setText((getIndex() + 1) + ". " + book.getTitle() + "   [" + book.getBorrowCount()
+                            + " kez okunmuş]");
                     if (isSelected()) {
                         setStyle("-fx-background-color: #45475a; -fx-text-fill: #cdd6f4; -fx-font-size: 16px;");
                     } else {
@@ -351,8 +369,8 @@ public class MainApp extends Application {
         Button viewDetailsBtn = createButton("Detayları Gör");
         viewDetailsBtn.setDisable(true);
 
-        listView.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) ->
-                viewDetailsBtn.setDisable(newVal == null));
+        listView.getSelectionModel().selectedItemProperty()
+                .addListener((observable, oldVal, newVal) -> viewDetailsBtn.setDisable(newVal == null));
 
         viewDetailsBtn.setOnAction(event -> {
             Book selectedItem = listView.getSelectionModel().getSelectedItem();
@@ -386,10 +404,15 @@ public class MainApp extends Application {
         typeBox.setStyle(INPUT_STYLE);
 
         typeBox.setButtonCell(new ListCell<String>() {
-            @Override protected void updateItem(String item, boolean empty) {
+            @Override
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); }
-                else { setText(item); setStyle("-fx-text-fill: #cdd6f4;"); }
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setStyle("-fx-text-fill: #cdd6f4;");
+                }
             }
         });
 
@@ -404,10 +427,15 @@ public class MainApp extends Application {
         genreBox.setVisible(false);
         genreBox.setManaged(false);
         genreBox.setButtonCell(new ListCell<String>() {
-            @Override protected void updateItem(String item, boolean empty) {
+            @Override
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); }
-                else { setText(item); setStyle("-fx-text-fill: #cdd6f4;"); }
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setStyle("-fx-text-fill: #cdd6f4;");
+                }
             }
         });
 
@@ -417,10 +445,15 @@ public class MainApp extends Application {
         subGenreBox.setVisible(false);
         subGenreBox.setManaged(false);
         subGenreBox.setButtonCell(new ListCell<String>() {
-            @Override protected void updateItem(String item, boolean empty) {
+            @Override
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) { setText(null); }
-                else { setText(item); setStyle("-fx-text-fill: #cdd6f4;"); }
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setStyle("-fx-text-fill: #cdd6f4;");
+                }
             }
         });
 
@@ -444,6 +477,7 @@ public class MainApp extends Application {
                     }
                 });
             }
+
             @Override
             protected void updateItem(Book book, boolean empty) {
                 super.updateItem(book, empty);
@@ -464,7 +498,7 @@ public class MainApp extends Application {
         Label noResultLabel = new Label();
         noResultLabel.setStyle("-fx-text-fill: #f38ba8;");
 
-        // Tür araması seçilirse (Ağaç - Tree kullanılacak)
+        // Tür araması seçilirse Ağaç kullanılacak
         typeBox.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) -> {
             if ("Türe Göre".equals(newVal)) {
                 searchField.setVisible(false);
@@ -505,14 +539,21 @@ public class MainApp extends Application {
 
             if (type == 0) { // İsme Göre
                 String query = searchField.getText().trim();
-                if (query.isEmpty()) { noResultLabel.setText("Lütfen aramak için bir kelime yazın."); return; }
+                if (query.isEmpty()) {
+                    noResultLabel.setText("Lütfen aramak için bir kelime yazın.");
+                    return;
+                }
                 resultList.getItems().addAll(db.searchByName(query));
             } else if (type == 1) { // ISBN'ye Göre (BST ARAMA KISMI)
                 String query = searchField.getText().trim();
-                if (query.isEmpty()) { noResultLabel.setText("Lütfen bir ISBN numarası girin."); return; }
-                // DİKKAT: Burada hocanın zorunlu tuttuğu İkili Arama Ağacı (BST) kullanılıyor! O(log n) hızında bulur.
+                if (query.isEmpty()) {
+                    noResultLabel.setText("Lütfen bir ISBN numarası girin.");
+                    return;
+                }
+                // İkili arama ağacı (BST) kullanılıyor
                 Book foundBook = db.searchByIsbn(query);
-                if (foundBook != null) resultList.getItems().add(foundBook);
+                if (foundBook != null)
+                    resultList.getItems().add(foundBook);
             } else if (type == 2) { // Türe Göre (TREE ARAMA KISMI)
                 String selectedGenre = genreBox.getValue();
                 String selectedSubGenre = subGenreBox.getValue();
@@ -544,13 +585,13 @@ public class MainApp extends Application {
 
         searchBtn.setOnAction(event -> searchAction.run());
 
-        typeBox.getSelectionModel().selectFirst(); // trigger default UI state
+        typeBox.getSelectionModel().selectFirst();
 
         Button viewDetailsBtn = createButton("Detayları Gör");
         viewDetailsBtn.setDisable(true);
 
-        resultList.getSelectionModel().selectedItemProperty().addListener((observable, oldVal, newVal) ->
-                viewDetailsBtn.setDisable(newVal == null));
+        resultList.getSelectionModel().selectedItemProperty()
+                .addListener((observable, oldVal, newVal) -> viewDetailsBtn.setDisable(newVal == null));
 
         viewDetailsBtn.setOnAction(event -> {
             Book selectedItem = resultList.getSelectionModel().getSelectedItem();
@@ -570,34 +611,33 @@ public class MainApp extends Application {
         root.getChildren().addAll(title, searchBox, noResultLabel, resultList, buttonBox);
     }
 
-    // Detay sayfası (İşlem sonrası mesaj göstermek için statusMessage alıyor)
+    // Detay sayfası işlem sonrası mesaj göstermek için statusMessage alıyor
     private void showBookDetails(String statusMessage) {
         root.getChildren().clear();
         root.setAlignment(Pos.TOP_LEFT);
-        root.setSpacing(10); // Bu sayfaya sığması için boşluğu daraltıyoruz
+        root.setSpacing(10);
 
         Label title = createTitle("KİTAP DETAYLARI");
 
-        // Kopyalanabilir metin alanları kullanıyoruz — seçip kopyalama yapılabilir
+        // Kopyalanabilir metin alanları kullanıyoruz seçip kopyalama yapılabilir
         VBox infoBox = new VBox(5);
         infoBox.getChildren().addAll(
-            createCopyableField("Kitap Adı:  " + book.getTitle()),
-            createCopyableField("Yazar:      " + book.getAuthor()),
-            createCopyableField("ISBN:       " + book.getIsbn()),
-            createCopyableField("Tür:        " + book.getGenre()),
-            createCopyableField("Alt Tür:    " + book.getSubGenre()),
-            createCopyableField("Okunma:     " + book.getBorrowCount() + " kez")
-        );
+                createCopyableField("Kitap Adı:  " + book.getTitle()),
+                createCopyableField("Yazar:      " + book.getAuthor()),
+                createCopyableField("ISBN:       " + book.getIsbn()),
+                createCopyableField("Tür:        " + book.getGenre()),
+                createCopyableField("Alt Tür:    " + book.getSubGenre()),
+                createCopyableField("Okunma:     " + book.getBorrowCount() + " kez"));
 
-        TextField statusField = createCopyableField("Durum:      " + (book.isAvailable() ? "RAFTA (ALINABİLİR)" : "KULLANIMDA (ÖDÜNÇ ALINMIŞ)"));
+        TextField statusField = createCopyableField(
+                "Durum:      " + (book.isAvailable() ? "RAFTA (ALINABİLİR)" : "KULLANIMDA (ÖDÜNÇ ALINMIŞ)"));
         statusField.setStyle(book.isAvailable()
                 ? "-fx-text-fill: #a6e3a1; -fx-background-color: transparent; -fx-border-color: transparent;"
                 : "-fx-text-fill: #f38ba8; -fx-background-color: transparent; -fx-border-color: transparent;");
         statusField.setFont(Font.font("Arial", FontWeight.BOLD, 15));
         infoBox.getChildren().add(statusField);
 
-
-        // --- Recommendations (GRAF YAPISI BURADA KULLANILIYOR) ---
+        // GRAF BURADA KULLANILIYOR
         Label recTitle = createTitle("BUNU OKUYANLAR ŞUNLARI DA OKUDU");
         recTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
@@ -608,19 +648,19 @@ public class MainApp extends Application {
         } else {
             for (String recIsbn : recs) {
                 Book recommendedBook = db.getBookByIsbnMap(recIsbn);
-                if (recommendedBook != null) recBox.getChildren().add(createCopyableField("- " + recommendedBook.getTitle()));
+                if (recommendedBook != null)
+                    recBox.getChildren().add(createCopyableField("- " + recommendedBook.getTitle()));
             }
         }
 
-        // --- Borrow History (LINKED LIST YAPISI BURADA KULLANILIYOR) ---
+        // ÖDÜNÇ ALMA GEÇMİŞİ (Bağlı Liste)
         Label historyTitle = createTitle("ÖDÜNÇ ALMA GEÇMİŞİ (Bağlı Liste)");
         historyTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        
+
         ListView<String> historyList = new ListView<>();
         historyList.setPrefHeight(80);
-        historyList.setMinHeight(60); // JavaFX'in listeyi 0 piksele ezmesini engeller
+        historyList.setMinHeight(60);
         historyList.setStyle("-fx-control-inner-background: #313244; -fx-background-color: #1e1e2e;");
-        // Hücrelerin rengini ListView için özel ayarlamalıyız
         historyList.setCellFactory(listProp -> new ListCell<String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -634,7 +674,7 @@ public class MainApp extends Application {
                 }
             }
         });
-        
+
         if (book.getBorrowHistory().isEmpty()) {
             historyList.getItems().add("Bu kitap henüz ödünç alınmamış.");
         } else {
@@ -643,7 +683,7 @@ public class MainApp extends Application {
             }
         }
 
-        // --- İşlem Sonucu Mesajı ---
+        // İşlem sonucu mesajı
         Label msgLabel = new Label(statusMessage != null ? statusMessage : "");
         msgLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         if (statusMessage != null && statusMessage.startsWith("Başarılı")) {
@@ -652,7 +692,7 @@ public class MainApp extends Application {
             msgLabel.setStyle("-fx-text-fill: #f9e2af;");
         }
 
-        // --- Actions ---
+        // Aksiyonlar
         Button borrowBtn = createButton("Kitabı Ödünç Al");
         borrowBtn.setOnAction(event -> {
             long startTime = System.nanoTime();
@@ -666,14 +706,16 @@ public class MainApp extends Application {
                 book.setAvailable(false);
                 user.addReadIsbn(book.getIsbn());
                 db.getLibraryGraph().addCoRead(user.getReadIsbns());
-                db.updateTopBooks(); // Ödünç alma sonrası diziyi güncelle
+
+                // Ödünç alma sonrası en çok okunanları güncelle
+                db.updateTopBooks();
                 msg = "Başarılı! Kitabı ödünç alan: " + user.getId();
             } else {
-                // Öncelikli Kuyruk mantığı burada devreye giriyor!
+                // Öncelikli Kuyruk
                 boolean added = book.getQueue().enqueue(user);
                 msg = added
-                    ? "Kitap rafta yok. Öncelikli bekleme listesine eklendiniz."
-                    : "Zaten bu kitap için sırada bekliyorsunuz.";
+                        ? "Kitap rafta yok. Öncelikli bekleme listesine eklendiniz."
+                        : "Zaten bu kitap için sırada bekliyorsunuz.";
             }
             showBookDetails(msg);
             long endTime = System.nanoTime();
@@ -688,7 +730,7 @@ public class MainApp extends Application {
                 book.setAvailable(true);
                 msg = "Başarılı! Kitap rafa geri konuldu.";
             } else {
-                // Öncelikli kuyruktan sıradaki kişiyi al (Dequeue İşlemi)
+                // Öncelikli kuyruktan sıradaki kişiyi al
                 User nextUser = book.getQueue().dequeue();
                 boolean isNew = book.getUniqueReaders().add(nextUser.getId());
                 if (isNew) {
@@ -709,13 +751,13 @@ public class MainApp extends Application {
         backBtn.setOnAction(event -> goBack());
 
         boolean isAdmin = user.getUserType() == com.library.model.UserType.ADMIN;
-        boolean isCurrentBorrower = !book.isAvailable() && !book.getBorrowHistory().isEmpty() 
-                                    && book.getBorrowHistory().getLast().getUserId().equals(user.getId());
+        boolean isCurrentBorrower = !book.isAvailable() && !book.getBorrowHistory().isEmpty()
+                && book.getBorrowHistory().getLast().getUserId().equals(user.getId());
 
         HBox buttonBox = new HBox(20);
         buttonBox.setAlignment(Pos.CENTER_LEFT);
         buttonBox.setPadding(new Insets(10, 0, 0, 0));
-        
+
         if (isCurrentBorrower || (isAdmin && !book.isAvailable())) {
             buttonBox.getChildren().addAll(returnBtn, backBtn);
         } else {

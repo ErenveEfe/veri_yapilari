@@ -16,8 +16,7 @@ public class DataLoader {
         db.addUser(new User("std02", "123", UserType.STUDENT));
         db.addUser(new User("std03", "123", UserType.STUDENT));
         db.addUser(new User("std04", "123", UserType.STUDENT));
-        db.addUser(new User("std05", "123", UserType.STUDENT));
-        db.addUser(new User("std06", "123", UserType.STUDENT));
+
         db.addUser(new User("aca01", "123", UserType.ACADEMICIAN));
         db.addUser(new User("aca02", "123", UserType.ACADEMICIAN));
         db.addUser(new User("admin", "admin", UserType.ADMIN));
@@ -27,11 +26,10 @@ public class DataLoader {
 
         try (BufferedReader reader = new BufferedReader(
                 new FileReader(path, java.nio.charset.StandardCharsets.UTF_8))) {
-            // Skip the header
+
             reader.readLine();
 
             while ((line = reader.readLine()) != null) {
-                // Use comma as separator, ignoring commas inside quotes
                 String[] bookData = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 
                 if (bookData.length >= 6) {
@@ -46,7 +44,7 @@ public class DataLoader {
                 }
             }
         } catch (IOException exception) {
-            System.err.println("Dataset file not found or could not be read: " + exception.getMessage());
+            System.err.println("Veri seti dosyası bulunamadı veya okunamadı: " + exception.getMessage());
             exception.printStackTrace();
         }
     }

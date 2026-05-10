@@ -22,7 +22,7 @@ public class DataLoader {
         db.addUser(new User("aca02", "123", UserType.ACADEMICIAN));
         db.addUser(new User("admin", "admin", UserType.ADMIN));
 
-        String path = "library_dataset_unique.csv";
+        String path = "final_books_dataset.csv";
         String line = "";
 
         try (BufferedReader reader = new BufferedReader(

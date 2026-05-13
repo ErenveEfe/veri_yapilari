@@ -4,7 +4,7 @@ import com.library.model.Book;
 import java.util.ArrayList;
 import java.util.List;
 
-// kategorileri ve alt türleri hiyerarşik olarak tutuyor
+// kategorileri ve alt türleri hiyerarşik olarak tutar
 public class BookTree {
     private TreeNode root;
 

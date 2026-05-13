@@ -13,7 +13,7 @@ import java.util.PriorityQueue;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
-/**
+/*
  * kodların çalışma hızını ölçmek için kullanılıyor
  */
 public class PerformanceBenchmark {
@@ -103,8 +103,7 @@ public class PerformanceBenchmark {
 
     // dizide lineer aramayla bst aramasının hızını karşılaştırır
     private BenchmarkResult benchmarkSearch(List<Book> books, String targetIsbn, int dataSize) {
-        // --- Veri yapılarını hazırla ---
-        // ArrayList zaten hazır (books parametresi)
+        // --- Veri yapilarını hazırla ---
         BookBST bst = new BookBST();
         for (Book b : books) {
             bst.insert(b);
@@ -278,6 +277,7 @@ public class PerformanceBenchmark {
             e.printStackTrace();
         }
 
+        // Veriyi rastgele karıştırır
         Collections.shuffle(books);
         return books;
     }

@@ -68,7 +68,7 @@ public class BenchmarkScreen {
             statusLabel.setText("Test çalışıyor, lütfen bekleyin...");
             new Thread(() -> {
                 PerformanceBenchmark benchmark = new PerformanceBenchmark();
-                int[] sizes = {200_000};
+                int[] sizes = { 200_000 };
                 List<PerformanceBenchmark.BenchmarkResult> results = benchmark.runAllBenchmarks(sizes);
                 Platform.runLater(() -> {
                     table.setItems(FXCollections.observableArrayList(results));
@@ -90,7 +90,8 @@ public class BenchmarkScreen {
 
     private static Button createBtn(String text) {
         Button btn = new Button(text);
-        btn.setStyle("-fx-background-color: #89b4fa; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;");
+        btn.setStyle(
+                "-fx-background-color: #89b4fa; -fx-text-fill: #11111b; -fx-font-weight: bold; -fx-background-radius: 8;");
         btn.setPrefWidth(200);
         btn.setPrefHeight(40);
         btn.setFont(Font.font("Arial", 14));

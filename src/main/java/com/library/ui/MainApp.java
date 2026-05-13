@@ -19,7 +19,6 @@ public class MainApp extends Application {
 
     private VBox root;
     private Label timeLabel;
-    // BUG-001 FIX: track current state to push correctly in changeScreen
     private MenuState currentState = MenuState.LOGIN;
     private NavigationManager navigator = new NavigationManager();
     private LibraryDatabase db = new LibraryDatabase();
